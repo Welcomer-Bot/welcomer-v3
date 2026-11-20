@@ -2,17 +2,28 @@ import type { DiscordGatewayPayload } from "@discordeno/bot";
 import { connect as connectAmqp, type ConsumeMessage } from "amqplib";
 import { bot, env, logger } from "./bot.ts";
 import { registerGuildEvents } from "./events/guilds.ts";
-import "./events/interactions/create.ts";
+import { registerInteractionEvents } from "./events/interactions/create.ts";
 import { registerMemberEvents } from "./events/members.ts";
 import "./events/nodejs.ts";
 import { prismaServerRepository } from "./servers/server-repository.ts";
 import { createServerService } from "./servers/server-service.ts";
+import { createCommands } from "./commands.ts";
+import { prismaStatusRepository } from "./status/status-repository.ts";
+import { createStatusService } from "./status/status-service.ts";
 
 const QUEUE = "gateway-events";
 
 const servers = createServerService(prismaServerRepository, () => new Date());
 registerGuildEvents(servers);
 registerMemberEvents(servers);
+registerInteractionEvents(
+  createCommands({
+    status: createStatusService(prismaStatusRepository, () => new Date(), {
+      startedAt: new Date(),
+      memoryBytes: () => process.memoryUsage().rss,
+    }),
+  }),
+);
 
 await connectToRabbitMQ();
 
