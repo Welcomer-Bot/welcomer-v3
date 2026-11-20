@@ -32,7 +32,7 @@ The packages are Just-in-Time packages that export TypeScript source ([Turborepo
 | Prettier                                   | 3.10.1                                                                                                      | defaults                                                                                                                                                                                                                                                         |
 | @heroui/react, @heroui/styles              | 3.2.7                                                                                                       | Tailwind CSS 4.3.5                                                                                                                                                                                                                                               |
 | prisma, @prisma/client, @prisma/adapter-pg | 7.10.1                                                                                                      | See decision D5                                                                                                                                                                                                                                                  |
-| better-auth, `auth` CLI                    | 1.7.27                                                                                                      | See decision D6                                                                                                                                                                                                                                                  |
+| better-auth, `auth` CLI                    | 1.7.26 (1.7.27 was in Yarn's 24-hour quarantine, see Build results)                                         | See decision D6                                                                                                                                                                                                                                                  |
 | zod                                        | 4.6.7                                                                                                       |                                                                                                                                                                                                                                                                  |
 | vitest                                     | 5.1.1                                                                                                       | `@vitejs/plugin-react` 6.3.0, jsdom 31.0.1, `@testing-library/react` 16.3.3, `@testing-library/dom` 10.4.2, vite-tsconfig-paths 6.1.1                                                                                                                            |
 | @playwright/test                           | 1.65.1                                                                                                      |                                                                                                                                                                                                                                                                  |
@@ -444,7 +444,7 @@ Files: `apps/dashboard/src/lib/auth.ts`, `src/app/api/auth/[...all]/route.ts`, `
 1. Install Better Auth and link the database package:
 
    ```sh
-   yarn workspace dashboard add better-auth@1.7.27 @repo/database@workspace:*
+   yarn workspace dashboard add better-auth@1.7.26 @repo/database@workspace:*
    ```
 
 2. Write `src/lib/auth.ts`, combining the [installation](https://www.better-auth.com/docs/installation), [Prisma adapter](https://www.better-auth.com/docs/adapters/prisma) and [Discord](https://www.better-auth.com/docs/authentication/discord) snippets. Better Auth looks for the file in `lib/` under `src/`. Slice 2 adds scopes and `mapProfileToUser`.
@@ -469,7 +469,7 @@ Files: `apps/dashboard/src/lib/auth.ts`, `src/app/api/auth/[...all]/route.ts`, `
 4. Generate the tables and migrate. Expected: the `User`, `Session`, `Account` and `Verification` models are added, and the migration applies.
 
    ```sh
-   cd apps/dashboard && yarn dlx auth@1.7.27 generate --output ../../packages/database/prisma/schema.prisma --yes
+   cd apps/dashboard && yarn dlx auth@1.7.26 generate --output ../../packages/database/prisma/schema.prisma --yes
    cd ../.. && yarn db:migrate -- --name better_auth
    ```
 
@@ -745,7 +745,7 @@ Each item was found while running the tasks; the fix is the one the cited source
 - Task 7: `prisma init` 7.10.1 writes `prisma7.config.ts`, its own `.gitignore`, and agent skills (`.agents/skills`, `.claude/skills` and `.windsurf/skills` links, `skills-lock.json`). They are kept as generator output (decision 6) and left out of Prettier. `NODE_ENV`, read by the guide's client, joins `globalEnv`, as in Turborepo's configuration reference.
 - Task 9: Yarn's default `npmMinimalAgeGate` (24 hours) quarantined better-auth 1.7.27, published that morning; 1.7.26 is used, the gate stays on. The dashboard type-checks the database package's `.ts` imports (D7), so its `tsconfig.json` adds `allowImportingTsExtensions`, which TypeScript allows with `noEmit`. `next build` succeeds with no environment.
 - Task 10: Vitest 5 needs `vite` installed explicitly under Yarn ([Vitest, migration](https://vitest.dev/guide/migration): "It is now a required peer dependency"). Vitest collected the Playwright specs, so `e2e/**` joins `configDefaults.exclude`. The strict preset rejects both `as string` and `!` in Better Auth's Discord snippet: the values use `?? ""`, with a comment, because the start check runs first. create-next-app's `.gitignore` ignores `.env*`, so `!.env.example` opts the example in, as its comment invites.
-- Task 10, open: when a variable is missing, the dashboard logs the Zod error at start and answers 500 to every request, but its process keeps running: Next.js catches errors from `register()` (`next-server.js`, "Failed to prepare server"). `next start` also warns that it "does not work with output: standalone"; the Playwright `webServer` still uses `yarn start`, as the plan says. Both are for the review.
+- Task 10, fixed after the review: Next.js only logs an error thrown from `register()` and keeps serving (`next-server.js`, "Failed to prepare server"), so the dashboard stayed up and answered 500. The check now lives in `instrumentation-node.ts`, imported only when `NEXT_RUNTIME` is `nodejs` (Next.js instrumentation guide, "Importing runtime-specific code"), and calls `process.exit(1)`. Playwright's `webServer` runs the standalone `server.js` with `.next/static` copied in, as the Next.js output docs say, since `next start` "does not work with output: standalone".
 - Task 11: `z.url()` accepts `amqp://`.
 - Task 12: Prettier reads only the root `.gitignore`, so `.prettierignore` lists the Prisma agent skills and Playwright's reports.
 - Task 13: `turbo prune --docker` copies `.yarnrc.yml`, so that `COPY` line is dropped. On `slim`, `curl` needs `ca-certificates`. With no `public/` folder left, the guide's `public` copy is dropped. Docker `--env-file` keeps quotes as part of the value, so the apps' `.env.example` values are unquoted.
@@ -753,12 +753,9 @@ Each item was found while running the tasks; the fix is the one the cited source
 
 ## Not verified
 
-- Whether `turbo prune` copies `.yarnrc.yml`. Whether the Yarn cache path in CI is right while the global cache is on.
-- The typescript-eslint `disableTypeChecked` preset. Its page was fetched, but the section was not in the extract.
+Checked during the build (results in Build results and in the docs): `turbo prune` copies `.yarnrc.yml`; the Yarn cache path; `disableTypeChecked` (exported by typescript-eslint 8.73.0, and the JS config files lint without type errors); Better Auth's secret during `next build`; `z.url()` with `amqp://`; Dependabot's `directories` key; the solo merge with no required approval; the `.npmrc` left by `-m yarn`.
+
+Still open:
+
 - Whether Node type stripping works on workspace packages that are reached through `node_modules` symlinks. Deferred to slice 1.
-- Whether Better Auth needs its secret during `next build`.
-- Whether Zod `z.url()` accepts `amqp://`.
-- Whether Dependabot accepts the `directories` key.
-- Whether a solo author can merge with no required approval.
-- Whether create-turbo's `-m yarn` transform leaves an `.npmrc`. The CLI docs do not describe the basic example or the non-empty-folder check; both were read from the published bundle and the example repository.
-- discordeno's current package and Node requirements: its getting-started page gives neither. Not needed until slice 1.
+- discordeno's package and Node requirements: slice 1 (decision 8).

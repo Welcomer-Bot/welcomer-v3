@@ -26,4 +26,4 @@ Chosen option: "HeroUI v3 with its package defaults". The dashboard uses `@herou
 
 ## More Information
 
-- [HeroUI, React docs](https://heroui.com/docs/react/getting-started). Not checked in this session; follow its install guide at build **[verify at build]**.
+- [HeroUI, React docs](https://heroui.com/docs/react/getting-started). Its quick start was followed in slice 0: `@heroui/styles` and `@heroui/react` 3.2.7, `@import "@heroui/styles"` right after `@import "tailwindcss"` ("Import order matters. Always import `tailwindcss` first"), no provider ("does not require a Provider"), and no custom tokens. Not verified: Yarn reports `@internationalized/date` and `@react-aria/ssr` as peers of `@heroui/react` that the dashboard does not list; the quick start does not mention them.
