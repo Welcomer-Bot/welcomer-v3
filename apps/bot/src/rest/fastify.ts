@@ -3,7 +3,17 @@ import fastifyMultipart, {
   type MultipartValue,
 } from "@fastify/multipart";
 import fastify, { type FastifyInstance } from "fastify";
+import { timingSafeEqual } from "node:crypto";
 import { env } from "./restManager.ts";
+
+const secret = Buffer.from(env.REST_PROXY_SECRET);
+
+// timingSafeEqual throws on buffers of different lengths, so the length is checked first.
+const isAuthorized = (header: string | undefined) => {
+  if (header === undefined) return false;
+  const given = Buffer.from(header);
+  return given.length === secret.length && timingSafeEqual(given, secret);
+};
 
 export function buildFastifyApp(): FastifyInstance {
   const app = fastify();
@@ -12,8 +22,8 @@ export function buildFastifyApp(): FastifyInstance {
 
   // Authorization check
   app.addHook("onRequest", async (req, res) => {
-    if (req.headers.authorization !== env.REST_PROXY_SECRET) {
-      res.status(401).send({
+    if (!isAuthorized(req.headers.authorization)) {
+      return res.status(401).send({
         message: "Credentials not valid.",
       });
     }
