@@ -4,6 +4,8 @@ import { bot, env, logger } from "./bot.ts";
 import "./events/interactions/create.ts";
 import "./events/nodejs.ts";
 
+const QUEUE = "gateway-events";
+
 await connectToRabbitMQ();
 
 async function handleGatewayEvent(
@@ -34,15 +36,15 @@ async function connectToRabbitMQ(): Promise<void> {
 
   if (!connection) return;
 
+  // amqplib emits "close" after "error", so only "close" reconnects.
   connection.on("close", () => {
     setTimeout(() => void connectToRabbitMQ(), 1000);
   });
   connection.on("error", (error: unknown) => {
     logger.error(
       { err: error },
-      "There was an error in the connection with RabbitMQ, reconnecting in 1s.",
+      "There was an error in the connection with RabbitMQ",
     );
-    setTimeout(() => void connectToRabbitMQ(), 1000);
   });
 
   const channel = await connection.createChannel().catch((error: unknown) => {
@@ -54,20 +56,6 @@ async function connectToRabbitMQ(): Promise<void> {
 
   if (!channel) return;
 
-  const exchange = await channel
-    .assertExchange("gatewayMessage", "x-message-deduplication", {
-      durable: true,
-      arguments: {
-        "x-cache-size": 1000, // maximum number of entries
-        "x-cache-ttl": 500, // 500ms
-      },
-    })
-    .catch((error: unknown) => {
-      logger.error({ err: error }, "There was an error asserting the exchange");
-    });
-
-  if (!exchange) return;
-
   const handleMessage = async (message: ConsumeMessage | null) => {
     if (!message) return;
 
@@ -77,22 +65,21 @@ async function connectToRabbitMQ(): Promise<void> {
       ) as GatewayEvent;
 
       await handleGatewayEvent(messageBody.payload, messageBody.shardId);
-
-      channel.ack(message);
     } catch (error) {
       logger.error(
         { err: error },
         "There was an error handling events received from RabbitMQ",
       );
+    } finally {
+      channel.ack(message);
     }
   };
 
-  await channel.assertQueue("gatewayMessageQueue");
-  await channel.bindQueue("gatewayMessageQueue", "gatewayMessage", "");
-  await channel.consume(
-    "gatewayMessageQueue",
-    (message) => void handleMessage(message),
-  );
+  await channel.assertQueue(QUEUE, { durable: true });
+  await channel.prefetch(100);
+  await channel.consume(QUEUE, (message) => void handleMessage(message), {
+    noAck: false,
+  });
 }
 
 interface GatewayEvent {

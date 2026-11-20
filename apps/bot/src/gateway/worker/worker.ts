@@ -1,5 +1,4 @@
 import assert from "node:assert";
-import { createHash } from "node:crypto";
 import { workerData as _workerData, parentPort } from "node:worker_threads";
 import {
   DiscordenoShard,
@@ -27,6 +26,17 @@ const shards = new Map<number, DiscordenoShard>();
 const pendingShards = new Map<number, DiscordenoShard>();
 
 let totalShards = workerData.connectionData.totalShards;
+
+const QUEUE = "gateway-events";
+const QUEUED_EVENTS = new Set<string>([
+  "READY",
+  "GUILD_CREATE",
+  "GUILD_UPDATE",
+  "GUILD_DELETE",
+  "GUILD_MEMBER_ADD",
+  "GUILD_MEMBER_REMOVE",
+  "INTERACTION_CREATE",
+]);
 
 let rabbitMQChannel: amqpChannel | undefined;
 
@@ -169,6 +179,8 @@ function handleShardMessageEvent(
   shard: DiscordenoShard,
   payload: DiscordGatewayPayload,
 ) {
+  if (!payload.t || !QUEUED_EVENTS.has(payload.t)) return;
+
   if (!rabbitMQChannel) {
     logger.error(
       "The RabbitMQ channel has not been created. The event will be lost",
@@ -176,17 +188,11 @@ function handleShardMessageEvent(
     return;
   }
 
-  const message = Buffer.from(JSON.stringify({ payload, shardId: shard.id }));
-  const discordData = JSON.stringify(payload.d);
+  const body = JSON.stringify({ payload, shardId: shard.id });
 
-  const deduplicationHash = createHash("sha1");
-  deduplicationHash.update(discordData);
-
-  rabbitMQChannel.publish("gatewayMessage", "", message, {
+  rabbitMQChannel.sendToQueue(QUEUE, Buffer.from(body), {
+    persistent: true,
     contentType: "application/json",
-    headers: {
-      "x-deduplication-header": deduplicationHash.digest("hex"),
-    },
   });
 }
 
@@ -209,13 +215,12 @@ async function connectToRabbitMQ(): Promise<void> {
     rabbitMQChannel = undefined;
     setTimeout(() => void connectToRabbitMQ(), 1000);
   });
+  // amqplib emits "close" after "error", so only "close" reconnects.
   connection.on("error", (error) => {
-    rabbitMQChannel = undefined;
     logger.error(
       { err: error },
-      "There was an error in the connection with RabbitMQ, reconnecting in 1s.",
+      "There was an error in the connection with RabbitMQ",
     );
-    setTimeout(() => void connectToRabbitMQ(), 1000);
   });
 
   const channel = await connection.createChannel().catch((error: unknown) => {
@@ -227,19 +232,13 @@ async function connectToRabbitMQ(): Promise<void> {
 
   if (!channel) return;
 
-  const exchange = await channel
-    .assertExchange("gatewayMessage", "x-message-deduplication", {
-      durable: true,
-      arguments: {
-        "x-cache-size": 1000, // maximum number of entries
-        "x-cache-ttl": 500, // 500ms
-      },
-    })
+  const queue = await channel
+    .assertQueue(QUEUE, { durable: true })
     .catch((error: unknown) => {
-      logger.error({ err: error }, "There was an error asserting the exchange");
+      logger.error({ err: error }, "There was an error asserting the queue");
     });
 
-  if (!exchange) return;
+  if (!queue) return;
 
   rabbitMQChannel = channel;
 }
