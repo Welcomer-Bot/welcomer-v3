@@ -9,7 +9,9 @@ afterEach(() => {
 test("architecture 8.1: stops at start when a variable is missing", () => {
   vi.stubEnv("DATABASE_URL", undefined);
   vi.spyOn(console, "error").mockImplementation(() => undefined);
-  const exit = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+  const exit = vi
+    .spyOn(process, "exit")
+    .mockImplementation(() => undefined as never);
 
   checkEnvironment();
 
