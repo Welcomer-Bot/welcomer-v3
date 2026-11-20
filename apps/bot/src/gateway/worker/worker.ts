@@ -124,7 +124,6 @@ async function handleManagerMessage(message: WorkerMessage) {
       };
     }
 
-    // Shutdown the old shards
     const shardsToShutdown = Array.from(shards.values());
 
     // Move the pending shards to the active shards

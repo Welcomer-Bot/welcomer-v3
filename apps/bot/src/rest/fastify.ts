@@ -20,7 +20,6 @@ export function buildFastifyApp(): FastifyInstance {
 
   app.register(fastifyMultipart, { attachFieldsToBody: true });
 
-  // Authorization check
   app.addHook("onRequest", async (req, res) => {
     if (!isAuthorized(req.headers.authorization)) {
       return res.status(401).send({
