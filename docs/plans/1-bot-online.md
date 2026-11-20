@@ -10,7 +10,7 @@
 - `src/rest`: the template's Fastify REST proxy, the only caller of Discord with the bot token.
 - `src/bot`: the queue consumer, `createBot` through the proxy, events and commands. Its layers are handlers (`events/*`, `commands/*`), then services, then repositories.
 
-Business rules that both apps share live in `packages/domain`: status vocabulary, the silence limit, the shard formula, the identifier check, server counting, and the help sections. The status page lives in `apps/dashboard` at `src/app/status`, with its service and repository in `src/server/status/`. That is the layering of [development](../technical/development.md#architecture-rules). Domain types carry string snowflakes and plain dates. discordeno bigints and Prisma rows are mapped in the handlers and repositories.
+Business rules that both apps share live in `packages/domain`: status vocabulary, the silence limit, the shard formula, the identifier check, server counting, and the variables list that `/help` shows. The status page lives in `apps/dashboard` at `src/app/status`, with its service and repository in `src/server/status/`. That is the layering of [development](../technical/development.md#architecture-rules). Domain types carry string snowflakes and plain dates. discordeno bigints and Prisma rows are mapped in the handlers and repositories.
 
 **Method.** Each task follows [test strategy](../technical/test-strategy.md). Business rules get their test first: run it, see it FAIL, write the code, see it PASS. Template copies, schema and CI are TDD exceptions, and their check is the command they ship. Each task ends with one commit: Conventional Commits, no `Co-Authored-By` trailer. Work on branch `feat/bot-online`.
 
@@ -38,18 +38,18 @@ All of these were published more than 24 hours ago, so Yarn's `npmMinimalAgeGate
   3. `new Worker(<file>.ts)` runs under type stripping.
 - **D3. Template parts dropped, each for a documented reason. The rest is kept as written.**
 
-  | Template part                                                                                                                | Reason                                                                                                                                                                                                                                          |
-  | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | `rest/influx.ts`, `@influxdata/influxdb-client`, the InfluxDB service                                                        | no monitoring ([requirements, later](../requirements.md#later))                                                                                                                                                                                 |
-  | HTTP event path (`MESSAGEQUEUE_ENABLE=false`, `bot/fastify.ts`, `EVENT_HANDLER_*`)                                           | the queue is always used ([ADR-0003](../adr/0003-discordeno-three-processes-rabbitmq.md))                                                                                                                                                       |
-  | Gateway HTTP API (`gateway/fastify.ts`, `ShardPayload`, `EditShardsPresence`, `ShardInfoFromGuild`, `getShardInfoFromGuild`) | the bot reads shard data from `shard_status` ([contracts, database](../technical/contracts.md#database-who-writes-what)). No v3 feature sends a payload to a shard                                                                              |
-  | `config.ts`, `dotenv`                                                                                                        | the existing Zod `env.ts` ([architecture 8.1](../technical/architecture.md#81-rules-for-the-dashboard)) and Node's `--env-file-if-exists`                                                                                                       |
-  | `util.ts`                                                                                                                    | Node 18 polyfills (D2)                                                                                                                                                                                                                          |
-  | `commands/ping.ts`, `devOnly`, `DEV_SERVER_ID`, `DEVELOPMENT`                                                                | the commands are `/help` and `/status`, global only ([contracts, Discord application](../technical/contracts.md#discord-application))                                                                                                           |
-  | `utils/loader.ts` and the `bot.commands` collection                                                                          | `register-commands` must not build the bot, because its environment holds only the token and the application id (slice 0 owner decision 5). An explicit `commands` array is type-checked, which the template's `.js` directory scan is not (D2) |
-  | `events/nodejs.ts` webhook report, `utils/webhook.ts`                                                                        | no monitoring. Its `unhandledRejection` log line is kept                                                                                                                                                                                        |
-  | `chalk` and the `logCommand` username                                                                                        | logs are JSON and never hold a member name (R-PRV-4)                                                                                                                                                                                            |
-  | `chokidar`, `typescript@^7`, `@types/amqplib`                                                                                | unused; TypeScript 5.9.3 (slice 0 D3); amqplib ships its types                                                                                                                                                                                  |
+  | Template part                                                                                                                | Reason                                                                                                                                                                                                                                                                                                                                          |
+  | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `rest/influx.ts`, `@influxdata/influxdb-client`, the InfluxDB service                                                        | no monitoring ([requirements, later](../requirements.md#later))                                                                                                                                                                                                                                                                                 |
+  | HTTP event path (`MESSAGEQUEUE_ENABLE=false`, `bot/fastify.ts`, `EVENT_HANDLER_*`)                                           | the queue is always used ([ADR-0003](../adr/0003-discordeno-three-processes-rabbitmq.md))                                                                                                                                                                                                                                                       |
+  | Gateway HTTP API (`gateway/fastify.ts`, `ShardPayload`, `EditShardsPresence`, `ShardInfoFromGuild`, `getShardInfoFromGuild`) | the bot reads shard data from `shard_status` ([contracts, database](../technical/contracts.md#database-who-writes-what)). No v3 feature sends a payload to a shard                                                                                                                                                                              |
+  | `config.ts`, `dotenv`                                                                                                        | the existing Zod `env.ts` ([architecture 8.1](../technical/architecture.md#81-rules-for-the-dashboard)) and Node's `--env-file-if-exists`                                                                                                                                                                                                       |
+  | `util.ts`                                                                                                                    | Node 18 polyfills (D2)                                                                                                                                                                                                                                                                                                                          |
+  | `commands/ping.ts`, `devOnly`, `DEV_SERVER_ID`, `DEVELOPMENT`                                                                | the commands are `/help` and `/status`, global only ([contracts, Discord application](../technical/contracts.md#discord-application))                                                                                                                                                                                                           |
+  | `utils/loader.ts` and the `bot.commands` collection                                                                          | `register-commands` must not build the bot, because its environment holds only the token and the application id (slice 0 owner decision 5). So the command definitions sit in a file with no runtime import, and the bot maps each name to its handler. An explicit list is type-checked, which the template's `.js` directory scan is not (D2) |
+  | `events/nodejs.ts` webhook report, `utils/webhook.ts`                                                                        | no monitoring. Its `unhandledRejection` log line is kept                                                                                                                                                                                                                                                                                        |
+  | `chalk` and the `logCommand` username                                                                                        | logs are JSON and never hold a member name (R-PRV-4)                                                                                                                                                                                                                                                                                            |
+  | `chokidar`, `typescript@^7`, `@types/amqplib`                                                                                | unused; TypeScript 5.9.3 (slice 0 D3); amqplib ships its types                                                                                                                                                                                                                                                                                  |
 
   Kept as written: the worker-thread gateway with `SHARDS_PER_WORKER` 16 and `TOTAL_WORKERS` 4, as constants. Resharding is kept on, because discordeno's default is on: `enabled: options.resharding?.enabled ?? true` (`packages/gateway/src/manager.ts` at `22.0.0-beta.2`). The REST proxy and `createBot` through the proxy are kept too.
 
@@ -71,10 +71,17 @@ All of these were published more than 24 hours ago, so Yarn's `npmMinimalAgeGate
   - they are absent from the list;
   - their `bot_joined_at` is earlier than that time.
 
-  amqplib calls the consumer in delivery order, so a later `GUILD_CREATE` always reads a later clock. The SQL runs the formula in PostgreSQL: `("id"::bigint >> 22) % ${count} = ${shardId}`. The shard count comes from the `READY` payload's `shard` pair, so the bot reads nothing else. Residual risk, accepted: a kick and a re-invite handled in the same instant may run out of order. Task 10 writes this guard into contracts.md.
+  The path from the consumer callback to the service is synchronous, so a later `GUILD_CREATE` always reads a later clock:
 
-- **D7. Who calls Discord.** The contract says rest "is the only caller of the Discord REST API with the bot token". The template's gateway calls `getGatewayBot` through the proxy, so `gatewayEnv` gains `REST_PROXY_URL` and `REST_PROXY_SECRET`. `createBot` needs `token`, since discordeno derives the application id from it, so `botEnv` gains `DISCORD_TOKEN`, as the template's `bot.ts` has it. `register-commands` calls Discord directly with its own REST manager (slice 0 owner decision 5). Task 10 updates the environment table of development.md.
-- **D8. REST proxy address.** The proxy listens on port 8000, the template's `REST_PORT` default and the `REST_PROXY_URL` of `.env.example`. Its host is `0.0.0.0`, because Fastify says "When deploying to a Docker… it is advisable to listen on `0.0.0.0`" ([Fastify, server](https://fastify.dev/docs/latest/Reference/Server/)). Both are constants, written into contracts.md in Task 10. No new variable is added.
+  1. amqplib calls the consumer in delivery order.
+  2. The callback calls `handleGatewayEvent`. Its template line `await bot.events.dispatchRequirements?.(…)` is removed: Welcomer sets no such hook, and that `await` was the only one before the handler.
+  3. At `22.0.0-beta.2`, `handleReady` and `handleGuildCreate` call `bot.events.ready` and `bot.events.guildCreate` before any `await` (`packages/bot/src/handlers/`).
+  4. The service reads `clock()` before its first `await`.
+
+  Task 6 states this path in a one-line comment. The SQL runs the formula in PostgreSQL: `("id"::bigint >> 22) % ${count} = ${shardId}`. The shard count comes from the `READY` payload's `shard` pair, so the bot reads nothing else. Residual risk, accepted: a kick and a re-invite handled in the same instant may run out of order. Task 10 writes this guard into contracts.md.
+
+- **D7. Who calls Discord.** The contract says rest "is the only caller of the Discord REST API with the bot token". The template's gateway calls `getGatewayBot` through the proxy, so `gatewayEnv` gains `REST_PROXY_URL` and `REST_PROXY_SECRET`. `createBot` needs `token`, since discordeno derives the application id from it, so `botEnv` gains `DISCORD_TOKEN`, as the template's `bot.ts` has it. discordeno reads both values at start: `getBotIdFromToken` runs `BigInt(atob(token.split('.')[0]))` (`packages/utils/src/token.ts` at `beta.2`). So the `.env.example` placeholders must parse: `DISCORD_TOKEN=MTIzNDU2Nzg5MDEyMzQ1Njc4.x.y` (base64 of 18 digits) and `DISCORD_CLIENT_ID=123456789012345678`. `register-commands` calls Discord directly with its own REST manager (slice 0 owner decision 5). Task 10 updates the environment table of development.md.
+- **D8. REST proxy address.** The proxy listens on port 8000, the template's `REST_PORT` default and the `REST_PROXY_URL` of `.env.example`. Its host is `0.0.0.0`, because Fastify says "When deploying to a Docker… it is advisable to listen on `0.0.0.0`" ([Fastify, server](https://fastify.dev/docs/latest/Reference/Server/)). Both are constants written into contracts.md in Task 10: the port belongs to the internal contract, like the queue name, and is not a deployment setting.
 - **D9. `/status` (R-CMD-2) reads `shard_status` and `bot_status`:**
   - "Connected" means that the connection serving this server is online after R-PUB-7. This interprets "connected or not". The connection's own state is the documented data that answers it.
   - The response time is the average latency of the connections that are online.
@@ -88,12 +95,19 @@ All of these were published more than 24 hours ago, so Yarn's `npmMinimalAgeGate
   - The total number of servers (R-PUB-4) is the sum of the per-connection counts, so the summary matches the lines.
   - Times show in UTC ([architecture 8](../technical/architecture.md#8-crosscutting-concepts), time).
 - **D12. `bot_status` is a single row with `id integer primary key default 1`.** Prisma needs a unique field on each model. data-model.md lists only `started_at` and `shard_count`. Task 10 adds `id`.
-- **D13. Dashboard link in `/help`.** R-CMD-1 asks for a dashboard link. The bot has no dashboard variable, so the link is `https://welcomer.app/dashboard`, built from R-PUB-11 ("address welcomer.app") and route `/dashboard` ([architecture 5.4](../technical/architecture.md#54-dashboard-pages)). The support link is `SUPPORT_SERVER_URL`.
+- **D13. Dashboard link in `/help`: a new `DASHBOARD_URL` variable.** R-CMD-1 asks for a dashboard link. Architecture 8 says "All settings come from environment variables", so `botEnv` gains `DASHBOARD_URL`:
+  - its value in production is `https://welcomer.app/dashboard` (R-PUB-11, route `/dashboard` of [architecture 5.4](../technical/architecture.md#54-dashboard-pages));
+  - its value in `.env.example` is `http://localhost:3000/dashboard`;
+  - it joins `turbo.json` `globalEnv` (slice 0 D13).
+
+  The support link is `SUPPORT_SERVER_URL`.
+
 - **D14. CI stays free of Discord.**
   - The domain rules are pure functions with an injected `now`.
   - The server rules run against the PostgreSQL service of the `test` job, which gets `DATABASE_URL` in its `env`.
   - The status page runs end to end on data from `yarn db:seed`, in an `e2e` job that gains a PostgreSQL service.
-  - Nothing calls Discord in a test, so no MSW handler is needed in this slice ([development, tests locally](../technical/development.md#tests-locally)).
+  - Locally, database tests use a separate `welcomer_test` database, so they never wipe the development data. Create it once with `docker compose -f compose.dev.yaml exec postgres createdb -U welcomer welcomer_test`. Then run `DATABASE_URL=postgresql://welcomer:welcomer@localhost:5432/welcomer_test yarn turbo run db:deploy` once per migration. Tests run with the same `DATABASE_URL` in front of `yarn test`. CI's PostgreSQL service is fresh on each run, so it uses `welcomer`.
+- Nothing calls Discord in a test, so no MSW handler is needed in this slice ([development, tests locally](../technical/development.md#tests-locally)).
   - The seeded connections were last updated on 2026-01-01, so they show offline forever (R-PUB-7). The end-to-end assertions therefore never depend on how fast the job runs.
 - **D15. Seed with Prisma 7.** Prisma 7 runs the seed only on request ("not auto-run by migrations in v7") and sets it in the config file with `migrations.seed` (Prisma's official agent skill, `packages/database/.agents/skills/prisma-cli/references/db-seed.md`). The command is `node prisma/seed.ts`, because type stripping replaces `tsx` (D2). The seed is idempotent with `upsert`, as that reference advises. It holds:
   - one server;
@@ -112,20 +126,20 @@ All of these were published more than 24 hours ago, so Yarn's `npmMinimalAgeGate
 | `.github/workflows/ci.yml`                                                                                                               | `DATABASE_URL` for `test`; PostgreSQL, migrate and seed for `e2e` | edited                      |
 | `packages/database/prisma/schema.prisma`, `prisma/migrations/<ts>_bot_online/`                                                           | `Server`, `ShardStatus`, `BotStatus`, enum `ShardState`           | hand + `prisma migrate dev` |
 | `packages/database/prisma/seed.ts`, `prisma7.config.ts`, `package.json`                                                                  | seed and `db:seed`                                                | Prisma seed reference       |
-| `packages/domain/src/{status,servers,help,errors,index}.ts`, `status.test.ts`, `servers.test.ts`, `help.test.ts`                         | shared rules and types                                            | hand, test first            |
+| `packages/domain/src/{status,servers,variables,errors,index}.ts`, `status.test.ts`, `servers.test.ts`                                    | shared rules and types                                            | hand, test first            |
 | `apps/bot/src/env.ts`, `env.test.ts`                                                                                                     | D7 variables                                                      | edited, test first          |
 | `apps/bot/src/logger.ts`                                                                                                                 | pino per process (D10)                                            | hand                        |
 | `apps/bot/src/gateway/{index,gatewayManager}.ts`, `worker/{createWorker,types,worker}.ts`, `status-repository.ts`                        | shards, queue publish, shard and bot status                       | bigbot, edited              |
 | `apps/bot/src/rest/{index,restManager,fastify}.ts`                                                                                       | REST proxy                                                        | bigbot, edited              |
-| `apps/bot/src/bot/{index,bot,commands,register-commands}.ts`                                                                             | consumer, client, command list, registration                      | bigbot, edited              |
+| `apps/bot/src/bot/{index,bot,command-definitions,commands,register-commands}.ts`                                                         | consumer, client, command definitions, handler map, registration  | bigbot, edited              |
 | `apps/bot/src/bot/events/{interactions/create,guilds,members,nodejs}.ts`                                                                 | handlers                                                          | bigbot `create.ts` + hand   |
 | `apps/bot/src/bot/commands/{help,status}.ts`                                                                                             | handlers                                                          | hand                        |
 | `apps/bot/src/bot/servers/{server-service,server-repository,server-service.test}.ts`                                                     | R-SRV-3 to R-SRV-5                                                | hand, test first            |
-| `apps/bot/src/bot/status/{status-service,status-repository}.ts`                                                                          | R-CMD-2                                                           | hand                        |
+| `apps/bot/src/bot/status/{status-service,status-repository,status-service.test}.ts`                                                      | R-CMD-2                                                           | hand                        |
 | `apps/bot/src/test/database.ts`                                                                                                          | shared fixtures: `aServer()`, `resetServers()`                    | hand                        |
 | `apps/bot/{package.json,Dockerfile,.env.example}`; `src/{gateway,rest,bot,register-commands}.ts` (deleted)                               | scripts and `CMD` on the template paths                           | edited                      |
 | `apps/dashboard/src/server/status/{status-service,status-repository}.ts`, `src/app/status/{page,auto-refresh}.tsx`, `e2e/status.spec.ts` | R-PUB-4 to R-PUB-9                                                | hand, e2e first             |
-| `docs/technical/{contracts,data-model,development,architecture}.md`, `docs/adr/0003…`                                                    | write-back (Task 10)                                              | edited                      |
+| `docs/technical/{contracts,data-model,development,architecture,ci-cd}.md`, `docs/adr/0003…`                                              | write-back (Task 10)                                              | edited                      |
 
 ## Tasks
 
@@ -138,12 +152,14 @@ Files: `.github/workflows/dependency-review.yml`.
 1. Under the `Dependency Review` step, add:
 
    ```yaml
-   # Owner decision: ignored until Prisma fixes it; pinned by @prisma/config 7.10.1.
+   # Owner decision: effect ReDoS (<= 3.22.0) via @prisma/config 7.10.1; ignored until Prisma upgrades it.
    with:
      allow-ghsas: GHSA-7589-6fvf-x4pw
    ```
 
    The option name is from the action's README: `allow-ghsas` "Contains a list of GitHub Advisory Database IDs that can be skipped" ([dependency-review-action](https://github.com/actions/dependency-review-action#configuration-options)). In `action.yml` it is a "Comma-separated list of allowed GitHub Advisory IDs".
+
+   The advisory is "Effect: ReDoS in Schema.TemplateLiteral compiled regex", on `effect` `<= 3.22.0` ([GitHub Advisory Database](https://github.com/advisories/GHSA-7589-6fvf-x4pw)). Check that the lockfile pulls it only through Prisma: `yarn why effect` lists `@prisma/config@7.10.1` as the only parent.
 
 2. Check: `docker run --rm -v "$PWD":/repo -w /repo rhysd/actionlint:latest` reports no errors. Then, on the slice's pull request, the `dependency-review` check passes while `yarn.lock` changes.
 3. Commit: `ci: allow prisma config advisory in dependency review`.
@@ -152,7 +168,7 @@ Files: `.github/workflows/dependency-review.yml`.
 
 TDD exception: this task is schema only. Its check is the migration and the seed.
 
-Files: `packages/database/prisma/schema.prisma`, `prisma/migrations/*`, `prisma/seed.ts`, `prisma7.config.ts`, `package.json`.
+Files: `packages/database/prisma/schema.prisma`, `prisma/migrations/*`, `prisma/seed.ts`, `prisma7.config.ts`, `package.json`, `turbo.json`.
 
 1. Append to `schema.prisma` (data-model.md, `@map` to snake_case, `timestamptz`):
 
@@ -195,7 +211,7 @@ Files: `packages/database/prisma/schema.prisma`, `prisma/migrations/*`, `prisma/
    ```
 
 2. Migrate: `yarn db:migrate -- --name bot_online`. Check: the new migration creates the 3 tables and the enum. `yarn turbo run db:generate` succeeds.
-3. In `prisma7.config.ts`, add `seed: "node prisma/seed.ts"` under `migrations` (D15). In `package.json`, add `"db:seed": "prisma db seed"`.
+3. In `prisma7.config.ts`, add `seed: "node prisma/seed.ts"` under `migrations` (D15). In `package.json`, add `"db:seed": "prisma db seed"`. In `turbo.json`, set `"db:seed": { "cache": false, "dependsOn": ["db:generate"] }`. The seed imports the generated client, which is gitignored. Prisma says "In Prisma 7, `migrate dev` no longer runs `prisma generate` automatically" ([Prisma, Turborepo v7](https://www.prisma.io/docs/guides/v7/deployment/turborepo)). So a clean runner, or a fresh `yarn db:migrate` locally, has no client until `db:generate` runs. The guide's own tasks show no `db:seed`, so its `dependsOn` follows the guide's pattern for `build` and `dev`.
 4. Write `prisma/seed.ts`. It imports `prisma` from `../src/client.ts` and upserts:
    - server `81384788765712384`, "Welcomer test server", 42 members, no icon, joined `2026-01-01T00:00:00Z`;
    - `bot_status` with id 1, started `2026-01-01T00:00:00Z`, `shardCount` 2;
@@ -235,19 +251,16 @@ Files: `packages/domain/{package.json,src/*}`.
    - `R-PUB-6: counts each server once after READY and its GUILD_CREATE`
    - `R-PUB-6: an unavailable server stays counted; a removed one does not`
 
-   `src/help.test.ts`:
-   - `R-CMD-1: help has the setup guide, every variable with what it shows, and both links`
-
    Run `yarn test --filter=@repo/domain`. Expected: FAIL, because the modules are missing.
 
 3. Write the code: plain functions and types, nothing infrastructural. The dependency rule lint of slice 0 enforces that.
    - `status.ts`: `type ShardState = "online" | "connecting" | "offline"`, `ShardStatus`, `SILENCE_LIMIT_MS = 60_000`, `effectiveState(shard, now)`, `overallState(shards, now)` returning `"operational" | "partial-outage" | "major-outage"`, `shardOf(serverId, shardCount)` using `BigInt`, `parseServerId(input)` with `/^\d{17,20}$/` that throws `InvalidServerId`, and `averageLatency(shards, now)`.
    - `servers.ts`: `Server` (`id`, `name`, `memberCount`, `icon`), and `countServers(ids: Set<string>, event)` for the events `ready`, `create` and `delete` with `unavailable` (D5).
-   - `help.ts`: `helpSections({ dashboardUrl, supportServerUrl })` holds the R-CMD-1 table text verbatim, and `VARIABLES`: the 11 names of [messages, variables](../business/messages.md#variables) with their "Replaced by" text. Slice 3 adds the maximum lengths to the same list.
+   - `variables.ts`: `VARIABLES`, the 11 names of [messages, variables](../business/messages.md#variables) with their "Replaced by" text. Slice 3 adds the maximum lengths to the same list. A constant needs no test of its own.
    - `errors.ts`: `InvalidServerId` and `ServerNotFound`, both extending `Error` ([architecture 8](../technical/architecture.md#8-crosscutting-concepts), domain errors).
    - `index.ts`: re-exports these modules.
 4. Run `yarn test --filter=@repo/domain`. Expected: PASS. `yarn lint` and `yarn typecheck` exit 0.
-5. Commit: `feat(domain): add status, server count and help rules`.
+5. Commit: `feat(domain): add status, server count and variables rules`.
 
 ### Task 4 — Bot app from the bigbot template
 
@@ -276,16 +289,20 @@ Files: `apps/bot/**`.
 
 3. Change the environment, test first. In `env.test.ts`:
    - the gateway's complete object gains `REST_PROXY_URL` and `REST_PROXY_SECRET`;
-   - the bot's complete object gains `DISCORD_TOKEN` (D7);
+   - the bot's complete object gains `DISCORD_TOKEN` (D7) and `DASHBOARD_URL` (D13);
    - the gateway's `required` becomes `REST_PROXY_URL`.
 
-   Run `yarn test --filter=bot -- src/env.test.ts`. Expected: FAIL. Add the fields to `gatewayEnv` and `botEnv` in `env.ts`. Expected: PASS. `.env.example` already holds every value.
+   Run `yarn test --filter=bot -- src/env.test.ts`. Expected: FAIL. Add the fields to `gatewayEnv` and `botEnv` in `env.ts`, with `DASHBOARD_URL: z.url()`. Expected: PASS. In `apps/bot/.env.example`:
+   - set `DISCORD_TOKEN=MTIzNDU2Nzg5MDEyMzQ1Njc4.x.y` and `DISCORD_CLIENT_ID=123456789012345678` (D7);
+   - add `DASHBOARD_URL=http://localhost:3000/dashboard`.
+
+   Add `DASHBOARD_URL` to `turbo.json` `globalEnv`.
 
 4. Adapt the template, with the smallest edit for each point:
    - Imports `.js` become `.ts` (D2).
    - `config.ts` values become the parsed env: each `index.ts` starts with `const env = <process>Env.parse(process.env)`. Intents: `Intents.Guilds | Intents.GuildMembers` ([contracts](../technical/contracts.md#discord-application)). `SHARDS_PER_WORKER = 16` and `TOTAL_WORKERS = 4` are constants in `gatewayManager.ts`, and `TOTAL_SHARDS` is left unset (contracts: the recommended shard count).
    - `promiseWithResolvers()` becomes `Promise.withResolvers()`, and `getDirnameFromFileUrl(import.meta.url)` becomes `import.meta.dirname`.
-   - Gateway: drop the HTTP server, `sendPayload`, `editBotStatus` and the `ShardInfo` messages (D3). The REST manager uses the proxy with `REST_PROXY_URL` and `REST_PROXY_SECRET` (D7). The worker path is `worker.ts`.
+   - Gateway: drop the HTTP server, `sendPayload`, `editBotStatus` and the `ShardInfo` messages (D3). The REST manager uses the proxy with `REST_PROXY_URL` and `REST_PROXY_SECRET` (D7). The worker path is `worker.ts`. The worker's message handler types its payload as `DiscordGatewayPayload` (snake_case). The template's `Camelize<DiscordGatewayPayload>` contradicts the template's own change "docs(bigbot): Send snake_case packets to bot" (`beta.2` release notes) **[verify at build: the shard passes snake_case payloads to `events.message`]**.
    - Rest: `listen({ host: "0.0.0.0", port: 8000 })` (D8). The `authorization` check uses `REST_PROXY_SECRET`. `createRestManager({ token: env.DISCORD_TOKEN, applicationId: env.DISCORD_CLIENT_ID })`.
    - Bot: drop the HTTP server and `overrideGatewayImplementations`. `createBot` with `token`, `intents` and `rest.proxy` from env. Set the `desiredProperties` needed by Tasks 6 and 8: guild `id`, `name`, `icon`, `memberCount`; member `guildId`; interaction `id`, `type`, `data`, `token`, `guildId`. discordeno v22 keeps no cache (R-PRV-6) **[verify at build: `member.guildId` is filled with this setting]**.
    - `src/logger.ts`: `export const createLogger = (service: string, level: string) => pino({ level, base: { service } })`. It replaces the template's `createLogger` calls in our files (D10).
@@ -295,14 +312,15 @@ Files: `apps/bot/**`.
      - `dev:bot`: `node --watch --env-file-if-exists=.env src/bot/index.ts`
      - `register-commands`: `node --env-file-if-exists=.env src/bot/register-commands.ts`
 
-     The Dockerfile `CMD` becomes `["node", "apps/bot/src/bot/index.ts"]`.
+     The Dockerfile `CMD` becomes `["node", "apps/bot/src/bot/index.ts"]`. The bot now imports the Prisma client, which is gitignored and generated. So the `builder` stage runs `RUN yarn turbo run db:generate --filter=@repo/database` after `COPY --from=prepare /app/out/full/ .`. The filter names the database package, because Turborepo runs a task only in the packages that match the filter, and `bot` has no `db:generate` script. The dashboard image already generates the client through `build`'s `^db:generate`.
 
 5. Check D2. Each check is **[verify at build]**:
    - `yarn typecheck` and `yarn lint` exit 0. Fix the template code where strict lint fails, never the rules (slice 0, Task 4).
-   - `cp apps/bot/.env.example apps/bot/.env && yarn workspace bot dev:rest` prints that the proxy listens on 8000.
+   - `cp apps/bot/.env.example apps/bot/.env && node --env-file=apps/bot/.env apps/bot/src/rest/index.ts` prints that the proxy listens on 8000. Stop it with Ctrl+C. The `dev:rest` script uses `--watch`, so it never exits on its own.
    - `node --env-file=apps/bot/.env apps/bot/src/bot/index.ts` connects to the local RabbitMQ and waits. This needs the database migrated, and it proves that `@repo/database` and `@repo/domain` load through the symlinks.
    - The gateway cannot start without a real token. Its worker file is loaded in Task 7's check.
-6. Commit: `feat(bot): adapt bigbot template to welcomer layout and environment`.
+6. Run `yarn format:write`: the template uses its own Biome style, and Prettier rewrites it. Check that `yarn format` exits 0.
+7. Commit: `feat(bot): adapt bigbot template to welcomer layout and environment`.
 
 ### Task 5 — Event queue as the contract says
 
@@ -327,6 +345,8 @@ Files: `apps/bot/src/gateway/worker/worker.ts`, `apps/bot/src/bot/index.ts`.
 
    `QUEUE = "gateway-events"` and the connection URL is `RABBITMQ_URL`, in place of the template's username, password and host.
 
+   `handleShardMessageEvent` counts servers first (Task 7). Then it returns without publishing unless `payload.t` is one of the contract's events: `READY`, `GUILD_CREATE`, `GUILD_UPDATE`, `GUILD_DELETE`, `GUILD_MEMBER_ADD`, `GUILD_MEMBER_REMOVE` or `INTERACTION_CREATE` ([contracts](../technical/contracts.md#gateway-to-bot-event-queue)). Heartbeat acks and other dispatches never reach the queue.
+
 2. Bot consumer. Use the same `assertQueue`, then `channel.prefetch(100)`, then `channel.consume(QUEUE, handler, { noAck: false })`. The handler calls the template's `handleGatewayEvent` in a `try`. On error it logs at level error, without the payload (R-PRV-4), then acks either way. "a failed handling is logged and not retried" ([contracts](../technical/contracts.md#gateway-to-bot-event-queue)).
 3. Check: with the compose stack up, publish one test message with the RabbitMQ management UI (`http://localhost:15672`, guest/guest). The bot logs it and the queue's "Unacked" count returns to 0. Stop the bot, publish again, and restart the bot: the message is handled. That is the ADR-0003 consequence.
 4. Commit: `feat(bot): use a durable work queue between gateway and bot`.
@@ -335,14 +355,14 @@ Files: `apps/bot/src/gateway/worker/worker.ts`, `apps/bot/src/bot/index.ts`.
 
 Files: `apps/bot/src/bot/servers/*`, `apps/bot/src/bot/events/{guilds,members}.ts`, `apps/bot/src/test/database.ts`, `.github/workflows/ci.yml`.
 
-1. In `ci.yml`, give the `test` job `env: { DATABASE_URL: postgresql://welcomer:welcomer@localhost:5432/welcomer }`. `DATABASE_URL` is already in `turbo.json` `globalEnv`, so Turborepo passes it through.
+1. In `ci.yml`, give the `test` job `env: { DATABASE_URL: postgresql://welcomer:welcomer@localhost:5432/welcomer }`. `DATABASE_URL` is already in `turbo.json` `globalEnv`, so Turborepo passes it through. Locally, run the tests against `welcomer_test` (D14).
 2. Write the shared fixtures in `src/test/database.ts`:
    - `aServer(overrides)` builds a domain `Server`.
    - `resetServers()` runs `prisma.server.deleteMany()`.
 
    The service under test is `createServerService(prismaServerRepository, clock)`, with a fixed clock.
 
-3. Write the tests first in `server-service.test.ts`, against the real database. Each test calls `beforeEach(resetServers)`. The rules depend on upsert semantics and on SQL ([test strategy](../technical/test-strategy.md#levels)). Snowflakes for 2 connections: `222078108977594368` and `222078108985982976` are on connection 0, and `222078108981788672` is on connection 1.
+3. Write the tests first in `server-service.test.ts`, against the real database. Each test calls `beforeEach(resetServers)`. The rules depend on upsert semantics and on SQL ([test strategy](../technical/test-strategy.md#levels)). Snowflakes for 2 connections, each checked with `(id >> 22) % 2`: `222078108977594368`, `222078108985982976` and `222078108994371584` are on connection 0, and `222078108981788672` is on connection 1.
    - `R-SRV-3: records a server the bot joins`: the row has name, member count, icon and the clock's join date.
    - `R-SRV-3: a known server is updated, never reset`: joined at T1, then joined again at T2 with a new name and count. The name and count change; the join date stays T1.
    - `R-SRV-4: an arrival adds one member and a departure removes one`: 10, then 11, then 10.
@@ -379,7 +399,7 @@ Files: `apps/bot/src/bot/servers/*`, `apps/bot/src/bot/events/{guilds,members}.t
    - `updated` calls `update`.
    - `memberArrived` and `memberLeft` call `addMembers` with ±1.
    - `left(id, unavailable)` does nothing when the server is unavailable (R-SRV-5).
-   - `shardReady(shard, ids)` reads `clock()` before any `await` (D6), then calls `removeMissing`.
+   - `shardReady(shard, ids)` reads `clock()` before any `await`, then calls `removeMissing`. A one-line comment says why: the dispatch path from the consumer is synchronous (D6).
 
 5. Write `prismaServerRepository` (`server-repository.ts`):
    - `upsert` uses `prisma.server.upsert`; its `update` part leaves `botJoinedAt` out (R-SRV-3).
@@ -394,7 +414,7 @@ Files: `apps/bot/src/bot/servers/*`, `apps/bot/src/bot/events/{guilds,members}.t
    - `events/guilds.ts`: `bot.events.guildCreate`, `guildUpdate`, `guildDelete` (`{ id, unavailable }`, from `handleGuildDelete` at `beta.2`) and `ready` (`{ shardId, guilds, shard }`).
    - `events/members.ts`: `guildMemberAdd` and `guildMemberRemove`. Only the server identifier is used; the member's name and identifier are never read or kept (R-PRV-6).
 
-   `bot/index.ts` builds the service with `prismaServerRepository` and `() => new Date()`.
+   `bot/index.ts` builds the service with `prismaServerRepository` and `() => new Date()`. It also removes the template's `await bot.events.dispatchRequirements?.(…)` line from `handleGatewayEvent` (D6).
 
 8. Check: `yarn lint`, `yarn typecheck` and `yarn test` exit 0.
 9. Commit: `feat(bot): record servers on join and remove them on leave`.
@@ -422,23 +442,30 @@ Files: `apps/bot/src/gateway/{index,gatewayManager,status-repository}.ts`, `work
 
 ### Task 8 — `/help`, `/status` and command registration
 
-R-CMD-1 is already tested in Task 3. This task maps the sections to an embed.
+R-CMD-1 is the fixed text of [commands](../business/commands.md), so it has no automated test; the owner checks it in Task 12. R-CMD-2's `connected` derivation gets one test first, with a fake port.
 
-Files: `apps/bot/src/bot/{commands,register-commands}.ts`, `commands/{help,status}.ts`, `status/{status-service,status-repository}.ts`, `events/interactions/create.ts`.
+Files: `apps/bot/src/bot/{command-definitions,commands,register-commands}.ts`, `commands/{help,status}.ts`, `status/{status-service,status-repository,status-service.test}.ts`, `events/interactions/create.ts`.
 
-1. `commands.ts` exports `commands`, an array of `{ name, description, contexts: [DiscordInteractionContextType.Guild], run }`. These are the template's `Command` fields minus `devOnly` (D3). `contexts: [0]` makes each command server only ([contracts](../technical/contracts.md#discord-application)).
+1. Split the command definitions from their handlers (D3):
+   - `command-definitions.ts` exports `commandDefinitions`, an array of `CreateApplicationCommand` objects: `name`, `description`, `contexts: [DiscordInteractionContextType.Guild]`. It imports only types from `@discordeno/bot`. `contexts: [0]` makes each command server only ([contracts](../technical/contracts.md#discord-application)).
+   - `commands.ts` maps each name to its `run` handler (`help`, `status`). These are the template's `Command` fields minus `devOnly`.
 2. `events/interactions/create.ts` keeps the template's lookup, with these changes:
    - It first calls `await interaction.defer(true)`, a deferred ephemeral response, because Discord needs "an initial response within 3 seconds" ([contracts](../technical/contracts.md#bot-and-dashboard-to-discord-rest-proxy)).
    - Then it calls `run`, which ends with `interaction.edit(…)` **[verify at build: `edit` without a message id edits the original response at `beta.2`]**.
    - On a thrown error, it edits the reply to "Something went wrong. Please try again later." and logs the error with `serverId` and the command name only (R-PRV-4).
-3. `commands/help.ts` maps `helpSections(...)` (Task 3) to one embed:
-   - the title as the embed title;
-   - Setup, Variables (one `` `{{name}}` — what it shows `` line each) and Links as fields;
-   - D13's dashboard URL and `SUPPORT_SERVER_URL`.
+3. `commands/help.ts` builds one embed with the R-CMD-1 table text verbatim:
+   - the title "Welcomer help" as the embed title;
+   - Setup, Variables (one `` `{{name}}` — what it shows `` line each, from `VARIABLES` of Task 3) and Links as fields;
+   - `DASHBOARD_URL` (D13) and `SUPPORT_SERVER_URL`.
 
    The Variables field must stay within Discord's 1,024 characters per field value **[verify at build]**.
 
-4. `status/status-service.ts` takes three ports: a `StatusRepository` (`shards()`, `botStatus()`), a clock, and a `Runtime` (`startedAt`, `memoryBytes()`). `get(serverId)` returns:
+4. Write the test first in `status/status-service.test.ts`, with an in-memory `StatusRepository`, a fixed clock and a fixed runtime:
+   - `R-CMD-2: connected only when the connection serving this server is online`: there are 2 connections. The server `81384788765712384` is on connection 0. Connection 0 is fresh and connection 1 silent, so the answer is connected. Connection 0 silent for 2 minutes gives not connected.
+
+   Run `yarn test --filter=bot -- src/bot/status/status-service.test.ts`. Expected: FAIL. Write the service below. Expected: PASS.
+
+   `status/status-service.ts` takes three ports: a `StatusRepository` (`shards()`, `botStatus()`), a clock, and a `Runtime` (`startedAt`, `memoryBytes()`). `get(serverId)` returns:
    - `connected`: `effectiveState` of the server's shard is `online`;
    - `averageLatencyMs`;
    - `runningSince` and `memoryBytes`;
@@ -451,7 +478,7 @@ Files: `apps/bot/src/bot/{commands,register-commands}.ts`, `commands/{help,statu
    - "Memory: N MB"
    - "Discord connection: N"
 
-5. `register-commands.ts` builds `createRestManager({ token, applicationId })` and calls `upsertGlobalApplicationCommands(commands)`. That is the bulk overwrite `PUT /applications/<id>/commands` (contracts). Then it calls `process.exit()`, as the template does ("the REST Manager has timeouts").
+5. `register-commands.ts` imports only `command-definitions.ts` and `registerCommandsEnv`. It builds `createRestManager({ token, applicationId })` and calls `upsertGlobalApplicationCommands(commandDefinitions)`. So registration loads no service, database or logger. That is the bulk overwrite `PUT /applications/<id>/commands` (contracts). Then it calls `process.exit()`, as the template does ("the REST Manager has timeouts").
 6. Check: `yarn lint`, `yarn typecheck` and `yarn test` exit 0.
 7. Commit: `feat(bot): add help and status commands and their registration`.
 
@@ -508,7 +535,8 @@ Files: `apps/dashboard/{package.json,src/server/status/*,src/app/status/*,e2e/st
 Do this after Tasks 1 to 9 and the owner's live check in Task 12, so that every result is known. Remove each **[verify at build]** marker once its result is written, with its source.
 
 - `development.md`:
-  - environment table: gateway gains `REST_PROXY_URL` and `REST_PROXY_SECRET`; bot gains `DISCORD_TOKEN` (D7);
+  - environment table: gateway gains `REST_PROXY_URL` and `REST_PROXY_SECRET`; bot gains `DISCORD_TOKEN` (D7) and `DASHBOARD_URL` (D13), a new row;
+  - tests locally: the `welcomer_test` database for database tests, and how to create and migrate it (D14);
   - Tools: the versions of this plan;
   - local setup step 4: what the seed holds now;
   - `yarn dev` order: rest must answer before the gateway starts. If the gateway exits at start, `node --watch` waits for a file change **[verify at build]**.
@@ -517,6 +545,10 @@ Do this after Tasks 1 to 9 and the owner's live check in Task 12, so that every 
   - the guard on the missed-departure cleanup (D6), with its marker removed (D16);
   - rest listens on `0.0.0.0:8000` (D8);
   - the gateway reaches Discord through the proxy (D7).
+- `ci-cd.md`:
+  - the `e2e` job runs with a PostgreSQL service, `db:deploy` and `db:seed`, and the `test` job sets `DATABASE_URL` (D14);
+  - the dependency-review exception `allow-ghsas: GHSA-7589-6fvf-x4pw`, with its reason (Task 1);
+  - Versions: the discordeno `beta` pin as the documented exception to "latest stable" (D1).
 - `data-model.md`: the `server_count` set rule (D5) and the `bot_status.id` column (D12).
 - `architecture.md` 6.3: the shard formula, confirmed (D16).
 - `docs/adr/0003…` "More Information": the template commit and the discordeno tag (D1), replacing "re-check at build".
@@ -557,9 +589,10 @@ Report each result in the pull request, and write the [verify at build] results 
 
 - [ ] Every rule of slice 1 is implemented, with tests written first that name the rule. They fail without their code (definition of done 1):
   - R-SRV-3, R-SRV-4 and R-SRV-5 in `server-service.test.ts`;
-  - R-PUB-5, R-PUB-6, R-PUB-7, R-PUB-8, R-CMD-1 and R-CMD-2 in `packages/domain`;
+  - R-PUB-5, R-PUB-6, R-PUB-7, R-PUB-8 and R-CMD-2 (average) in `packages/domain`;
+  - R-CMD-2 (connected) in `status-service.test.ts`;
   - R-PUB-4 to R-PUB-9 in `e2e/status.spec.ts`.
-    R-SRV-2 is checked by hand (Task 12). R-SRV-6 needs statistics and gets its test in slice 5. No test covers discordeno, Prisma or RabbitMQ.
+    R-SRV-2 and R-CMD-1 (fixed texts) are checked by hand (Task 12). R-SRV-6 needs statistics and gets its test in slice 5. No test covers discordeno, Prisma or RabbitMQ.
 - [ ] Gateway, rest and bot are joined by one durable queue, as the contract says. `/help` and `/status` answer ephemerally. `register-commands` does one bulk overwrite. The status page is public and refreshes every 30 seconds (roadmap, slice 1).
 - [ ] The quality gate passes on `main` without Discord credentials, and both images are on GHCR, tagged with the commit SHA (definition of done 2).
 - [ ] The code follows the architecture rules and conventions (definition of done 3):
@@ -588,6 +621,7 @@ None. The documents answer every point, and their default is applied. D9's readi
 - discordeno `beta.2`:
   - `interaction.edit` without a message id;
   - `desiredProperties` filling `member.guildId`.
+- The shard passing snake_case payloads to the worker's `events.message` (Task 4).
 - Prisma binding a JavaScript string array to `text[]` in `$executeRaw` (D6).
 - The Playwright clock driving the page's `setInterval` (Task 9).
 - Whether the `/help` Variables field fits Discord's per-field limit. Discord's embed limits page was not fetched in this plan.
