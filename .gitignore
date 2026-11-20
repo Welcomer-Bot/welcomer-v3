@@ -45,3 +45,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Prisma (https://www.prisma.io/docs/guides/v7/deployment/turborepo)
+packages/database/generated

@@ -14,7 +14,8 @@
     "ADMIN_DISCORD_IDS",
     "SUPPORT_SERVER_URL",
     "LOG_LEVEL",
-    "DISCORD_API_URL"
+    "DISCORD_API_URL",
+    "NODE_ENV"
   ],
   "tasks": {
     "build": {
