@@ -6,7 +6,7 @@ import {
 import Form from "next/form";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { findShard, getStatus } from "@/server/status/status-service";
+import { statusService } from "@/server/status";
 import { AutoRefresh } from "./auto-refresh";
 
 const OVERALL_LABELS: Record<OverallState, string> = {
@@ -22,7 +22,7 @@ function UtcTime({ date }: { date: Date }) {
 
 async function lookUp(input: string) {
   try {
-    return `Discord connection ${String(await findShard(input))}`;
+    return `Discord connection ${String(await statusService.findShard(input))}`;
   } catch (error) {
     if (error instanceof InvalidServerId)
       return "Enter a server identifier of 17 to 20 digits";
@@ -36,7 +36,7 @@ async function StatusDetails({
 }: Pick<PageProps<"/status">, "searchParams">) {
   await connection();
   const [status, { server }] = await Promise.all([
-    getStatus(new Date()),
+    statusService.getStatus(new Date()),
     searchParams,
   ]);
   const input = typeof server === "string" ? server : undefined;
