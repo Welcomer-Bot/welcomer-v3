@@ -72,7 +72,9 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "yarn start",
+    // Next.js: the standalone server.js replaces `next start`, with `.next/static` copied in by hand.
+    command:
+      "cp -r .next/static .next/standalone/apps/dashboard/.next/ && node .next/standalone/apps/dashboard/server.js",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
   },
