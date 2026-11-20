@@ -5,10 +5,10 @@ Quality gate on every change, then the Docker images of each app on `main`. Runs
 ## Branches
 
 - The repository is public on GitHub.
-- `main` is protected: changes arrive only by pull request; direct pushes are refused.
+- `main` is protected: changes arrive only by pull request. Administrators are exempt for now ("Do not allow bypassing" is off), so they can merge past a failing check, because dependency review fails on the Prisma 7 CLI's `effect` dependency until a Prisma release patches it ([GHSA-7589-6fvf-x4pw](https://github.com/advisories/GHSA-7589-6fvf-x4pw)); turn it back on once that check is green.
 - Required status checks: every job of the CI workflow below, with "require branches to be up to date" ([GitHub, protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches): "Required status checks must have a successful, skipped, or neutral status").
 - Job names are unique across workflows, so required checks are unambiguous (same source).
-- No required approval: the owner works alone, and the author of a pull request cannot approve it ([GitHub, approving a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews)) **[verify at build: on the first pull request, in slice 0 Task 18, by the owner]**.
+- No required approval: the owner works alone, and the author of a pull request cannot approve it ([GitHub, approving a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews)). Checked on the first pull request: with 0 required approvals, the review requirement did not block the author's own merge; only the failing dependency review check did.
 - Commit messages and pull request titles follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
 
 ## CI workflow: the quality gate
