@@ -1103,6 +1103,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@repo/card@workspace:packages/card":
+  version: 0.0.0-use.local
+  resolution: "@repo/card@workspace:packages/card"
+  dependencies:
+    "@repo/eslint-config": "workspace:*"
+    "@repo/typescript-config": "workspace:*"
+    eslint: "npm:9.39.5"
+    typescript: "npm:5.9.3"
+  languageName: unknown
+  linkType: soft
+
+"@repo/domain@workspace:packages/domain":
+  version: 0.0.0-use.local
+  resolution: "@repo/domain@workspace:packages/domain"
+  dependencies:
+    "@repo/eslint-config": "workspace:*"
+    "@repo/typescript-config": "workspace:*"
+    eslint: "npm:9.39.5"
+    typescript: "npm:5.9.3"
+  languageName: unknown
+  linkType: soft
+
 "@repo/eslint-config@workspace:*, @repo/eslint-config@workspace:packages/config-eslint":
   version: 0.0.0-use.local
   resolution: "@repo/eslint-config@workspace:packages/config-eslint"
@@ -1116,7 +1138,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@repo/typescript-config@workspace:packages/config-typescript":
+"@repo/typescript-config@workspace:*, @repo/typescript-config@workspace:packages/config-typescript":
   version: 0.0.0-use.local
   resolution: "@repo/typescript-config@workspace:packages/config-typescript"
   languageName: unknown
