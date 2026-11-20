@@ -1,5 +1,10 @@
+import type { ShardStatus } from "@repo/domain";
+
 export type ManagerMessage =
-  ManagerRequestIdentify | ManagerShardIdentified | ManagerShardPrepared;
+  | ManagerRequestIdentify
+  | ManagerShardIdentified
+  | ManagerShardPrepared
+  | ManagerShardStatuses;
 export type WorkerMessage =
   | WorkerIdentifyShard
   | WorkerPrepareShard
@@ -47,6 +52,11 @@ export interface WorkerCreateData {
 export interface ManagerShardIdentified {
   type: "ShardIdentified";
   shardId: number;
+}
+
+export interface ManagerShardStatuses {
+  type: "ShardStatuses";
+  statuses: Omit<ShardStatus, "updatedAt">[];
 }
 
 export interface ManagerShardPrepared {

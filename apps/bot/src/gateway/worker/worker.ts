@@ -3,8 +3,12 @@ import { workerData as _workerData, parentPort } from "node:worker_threads";
 import {
   DiscordenoShard,
   type DiscordGatewayPayload,
+  type DiscordReady,
+  type DiscordUnavailableGuild,
   ShardSocketCloseCodes,
+  ShardState,
 } from "@discordeno/bot";
+import { countServers, type ShardState as StatusState } from "@repo/domain";
 import { type Channel as amqpChannel, connect as connectAmqp } from "amqplib";
 import { createLogger } from "../../logger.ts";
 import type {
@@ -38,9 +42,24 @@ const QUEUED_EVENTS = new Set<string>([
   "INTERACTION_CREATE",
 ]);
 
+const STATUS_INTERVAL_MS = 30_000;
+
 let rabbitMQChannel: amqpChannel | undefined;
+const serverIds = new Map<DiscordenoShard, Set<string>>();
 
 await connectToRabbitMQ();
+
+setInterval(() => {
+  parentPort?.postMessage({
+    type: "ShardStatuses",
+    statuses: Array.from(shards.values(), (shard) => ({
+      shardId: shard.id,
+      state: statusState(shard.state),
+      latencyMs: shard.heart.rtt ?? null,
+      serverCount: serverIds.get(shard)?.size ?? 0,
+    })),
+  } satisfies ManagerMessage);
+}, STATUS_INTERVAL_MS);
 
 parentPort.on(
   "message",
@@ -73,9 +92,8 @@ async function handleManagerMessage(message: WorkerMessage) {
       pendingShards.set(message.shardId, shard);
     }
 
-    // Ignore the events
-    // TODO: If you need 'gateway.resharding.updateGuildsShardId' it you can listen to only the ready event and use the data from that event for the function call
-    shard.events.message = undefined;
+    // Pending shards only count their servers until the switch.
+    shard.events.message = countServerEvent;
 
     await shard.identify();
 
@@ -122,6 +140,7 @@ async function handleManagerMessage(message: WorkerMessage) {
         ShardSocketCloseCodes.Resharded,
         "Shard is being resharded",
       );
+      serverIds.delete(shard);
       logger.info({ shardId: shard.id }, "Shard has been shutdown");
     });
 
@@ -175,10 +194,57 @@ function createShard(shardId: number): DiscordenoShard {
   return shard;
 }
 
+function statusState(state: ShardState): StatusState {
+  switch (state) {
+    case ShardState.Connected:
+      return "online";
+    case ShardState.Connecting:
+    case ShardState.Unidentified:
+    case ShardState.Identifying:
+    case ShardState.Resuming:
+      return "connecting";
+    case ShardState.Disconnected:
+    case ShardState.Offline:
+      return "offline";
+  }
+}
+
+function countServerEvent(
+  shard: DiscordenoShard,
+  payload: DiscordGatewayPayload,
+) {
+  const ids = serverIds.get(shard) ?? new Set<string>();
+  if (payload.t === "READY") {
+    const { guilds } = payload.d as DiscordReady;
+    serverIds.set(
+      shard,
+      countServers(ids, {
+        type: "ready",
+        ids: guilds.map((guild) => guild.id),
+      }),
+    );
+  } else if (payload.t === "GUILD_CREATE") {
+    const { id } = payload.d as DiscordUnavailableGuild;
+    serverIds.set(shard, countServers(ids, { type: "create", id }));
+  } else if (payload.t === "GUILD_DELETE") {
+    const { id, unavailable } = payload.d as DiscordUnavailableGuild;
+    serverIds.set(
+      shard,
+      countServers(ids, {
+        type: "delete",
+        id,
+        unavailable: unavailable ?? false,
+      }),
+    );
+  }
+}
+
 function handleShardMessageEvent(
   shard: DiscordenoShard,
   payload: DiscordGatewayPayload,
 ) {
+  countServerEvent(shard, payload);
+
   if (!payload.t || !QUEUED_EVENTS.has(payload.t)) return;
 
   if (!rabbitMQChannel) {

@@ -1,6 +1,7 @@
 import { join as joinPath } from "node:path";
 import { Worker } from "node:worker_threads";
 import gatewayManager, { env, intents, logger } from "../gatewayManager.ts";
+import { prismaStatusRepository } from "../status-repository.ts";
 import type {
   ManagerMessage,
   WorkerCreateData,
@@ -44,6 +45,14 @@ export function createWorker(workerId: number): Worker {
     }
     if (message.type === "ShardIdentified") {
       logger.info({ shardId: message.shardId }, "Shard identified");
+      return;
+    }
+    if (message.type === "ShardStatuses") {
+      await prismaStatusRepository
+        .save(message.statuses, new Date())
+        .catch((error: unknown) => {
+          logger.error({ err: error }, "Failed to save the shard statuses");
+        });
     }
   }
 

@@ -6,6 +6,7 @@ import {
 } from "@discordeno/bot";
 import { gatewayEnv } from "../env.ts";
 import { createLogger } from "../logger.ts";
+import { prismaStatusRepository } from "./status-repository.ts";
 import { createWorker } from "./worker/createWorker.ts";
 import type { ManagerMessage, WorkerMessage } from "./worker/types.ts";
 
@@ -75,7 +76,9 @@ gatewayManager.resharding.tellWorkerToPrepare = async (
   worker.off("message", waitForShardPrepared);
 };
 
-gatewayManager.resharding.onReshardingSwitch = () => {
+await prismaStatusRepository.start(new Date(), gatewayManager.totalShards);
+
+gatewayManager.resharding.onReshardingSwitch = async () => {
   logger.info(
     "Resharding switch triggered, telling workers to switch the shards",
   );
@@ -86,7 +89,7 @@ gatewayManager.resharding.onReshardingSwitch = () => {
     } satisfies WorkerMessage);
   }
 
-  return Promise.resolve();
+  await prismaStatusRepository.setShardCount(gatewayManager.totalShards);
 };
 
 gatewayManager.tellWorkerToIdentify = async (workerId, shardId, bucketId) => {
