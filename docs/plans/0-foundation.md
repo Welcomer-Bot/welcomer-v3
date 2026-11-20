@@ -705,22 +705,22 @@ These steps need the owner: the repository has no remote, and the GitHub organiz
 
 ## Done when
 
-- [ ] Every slice-0 element of the roadmap exists:
+- [x] Every slice-0 element of the roadmap exists:
   - the monorepo, from the official generators
   - `apps/bot` with four entry points, and `apps/dashboard`
   - `packages/domain`, `packages/card`, `packages/database`, and the `config-*` packages
   - `compose.dev.yaml`, a `.env.example` per app and for the database, and a Zod check at start
   - `ci.yml`, `images.yml`, CodeQL default setup, dependency review and Dependabot
-- [ ] The tests were written first and fail without their code. That covers the environment checks (dashboard and four bot processes) and the e2e smoke test; there are no other tests.
-- [ ] The quality gate passes on `main`, and both images are on GHCR, tagged with the commit SHA (roadmap definition of done 2).
-- [ ] The architecture rules hold:
+- [x] The tests were written first and fail without their code. That covers the environment checks (dashboard and four bot processes) and the e2e smoke test; there are no other tests.
+- [x] The quality gate passes on `main`, and both images are on GHCR, tagged with the commit SHA (roadmap definition of done 2).
+- [x] The architecture rules hold:
   - `packages/domain` and `packages/card` lint-fail on any infrastructure import.
   - Lint is strict and typed, with `--max-warnings 0`.
   - TypeScript is `strict`.
   - Prettier keeps its defaults (definition of done 3).
-- [ ] An independent review of the slice against development.md, ci-cd.md and this plan found nothing left to fix (definition of done 4).
-- [ ] Every slice-0 **[verify at build]** item is checked and written back into the docs (Task 17, definition of done 5).
-- [ ] The CLAUDE.md commands work from the root: `yarn dev`, `lint`, `format`, `format:write`, `typecheck`, `test`, `e2e`, `build`, `db:migrate`, `db:seed`. One test file runs with `yarn test --filter=<workspace> -- <path>`.
+- [x] An independent review of the slice against development.md, ci-cd.md and this plan found nothing left to fix (definition of done 4).
+- [x] Every slice-0 **[verify at build]** item is checked and written back into the docs (Task 17, definition of done 5).
+- [x] The CLAUDE.md commands work from the root: `yarn dev`, `lint`, `format`, `format:write`, `typecheck`, `test`, `e2e`, `build`, `db:migrate`, `db:seed`. One test file runs with `yarn test --filter=<workspace> -- <path>`.
 
 ## Owner decisions (2026-11-20)
 
