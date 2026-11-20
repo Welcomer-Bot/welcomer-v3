@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-const LOG_LEVEL = z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info");
+const LOG_LEVEL = z
+  .enum(["fatal", "error", "warn", "info", "debug", "trace"])
+  .default("info");
 
 export const gatewayEnv = z.object({
   DATABASE_URL: z.url(),

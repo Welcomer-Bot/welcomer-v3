@@ -10,6 +10,8 @@ export const dashboardEnv = z.object({
   BETTER_AUTH_URL: z.url(),
   ADMIN_DISCORD_IDS: z.string().min(1),
   SUPPORT_SERVER_URL: z.url(),
-  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
+  LOG_LEVEL: z
+    .enum(["fatal", "error", "warn", "info", "debug", "trace"])
+    .default("info"),
   DISCORD_API_URL: z.url().default("https://discord.com/api/v10"),
 });

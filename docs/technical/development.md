@@ -4,11 +4,11 @@ How to work on Welcomer locally, and the conventions every change follows. Pipel
 
 ## Tools
 
-| Tool    | Version                                                                                       |
-| ------- | --------------------------------------------------------------------------------------------- |
+| Tool    | Version                                                                                                                                                                                                                                                              |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Node.js | the Active LTS when the repository is created: 26 on 2026-11-20 ([Node.js release schedule](https://github.com/nodejs/release#release-schedule): "Production applications should only use Active LTS or Maintenance LTS releases"), pinned in `.nvmrc` and `engines` |
-| Yarn    | latest stable, through Corepack and the `packageManager` field                                 |
-| Docker  | Engine with the Compose plugin, for PostgreSQL and RabbitMQ                                   |
+| Yarn    | latest stable, through Corepack and the `packageManager` field                                                                                                                                                                                                       |
+| Docker  | Engine with the Compose plugin, for PostgreSQL and RabbitMQ                                                                                                                                                                                                          |
 
 Yarn uses `nodeLinker: node-modules`. Yarn's default is `pnp` ([Yarn, nodeLinker](https://yarnpkg.com/configuration/yarnrc#nodeLinker)); neither the Turborepo nor the Next.js docs mention Plug'n'Play, so the classic layout is kept for tool compatibility **[verify at build]**.
 
@@ -24,22 +24,21 @@ Yarn uses `nodeLinker: node-modules`. Yarn's default is `pnp` ([Yarn, nodeLinker
 
 Checked at start by a Zod schema in each app ([architecture, 8.1](./architecture.md#81-rules-for-the-dashboard)).
 
-| Variable                | Used by                    | What                                                       |
-| ----------------------- | -------------------------- | ---------------------------------------------------------- |
-| `DATABASE_URL`          | gateway, bot, dashboard, migrations | Supabase session pooler URL                       |
-| `RABBITMQ_URL`          | gateway, bot               | queue                                                      |
-| `DISCORD_TOKEN`         | gateway, rest, register-commands | bot token                                            |
-| `DISCORD_CLIENT_ID`     | rest, dashboard, register-commands | application identifier                             |
-| `DISCORD_CLIENT_SECRET` | dashboard                  | OAuth2 secret                                              |
-| `REST_PROXY_URL`        | bot, dashboard             | internal address of `rest`                                 |
-| `REST_PROXY_SECRET`     | rest, bot, dashboard       | shared secret header                                       |
-| `BETTER_AUTH_SECRET`    | dashboard                  | signing secret                                             |
-| `BETTER_AUTH_URL`       | dashboard                  | public address, `https://welcomer.app`                     |
-| `ADMIN_DISCORD_IDS`     | dashboard                  | admins (R-ADM-2)                                           |
-| `SUPPORT_SERVER_URL`    | bot, dashboard             | support server link (R-PUB-11)                             |
-| `LOG_LEVEL`             | all                        | `info` in production, `debug` locally                      |
-| `DISCORD_API_URL`       | dashboard                  | Discord API base for user calls; default `https://discord.com/api/v10`, a mock in end-to-end tests |
-
+| Variable                | Used by                             | What                                                                                               |
+| ----------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | gateway, bot, dashboard, migrations | Supabase session pooler URL                                                                        |
+| `RABBITMQ_URL`          | gateway, bot                        | queue                                                                                              |
+| `DISCORD_TOKEN`         | gateway, rest, register-commands    | bot token                                                                                          |
+| `DISCORD_CLIENT_ID`     | rest, dashboard, register-commands  | application identifier                                                                             |
+| `DISCORD_CLIENT_SECRET` | dashboard                           | OAuth2 secret                                                                                      |
+| `REST_PROXY_URL`        | bot, dashboard                      | internal address of `rest`                                                                         |
+| `REST_PROXY_SECRET`     | rest, bot, dashboard                | shared secret header                                                                               |
+| `BETTER_AUTH_SECRET`    | dashboard                           | signing secret                                                                                     |
+| `BETTER_AUTH_URL`       | dashboard                           | public address, `https://welcomer.app`                                                             |
+| `ADMIN_DISCORD_IDS`     | dashboard                           | admins (R-ADM-2)                                                                                   |
+| `SUPPORT_SERVER_URL`    | bot, dashboard                      | support server link (R-PUB-11)                                                                     |
+| `LOG_LEVEL`             | all                                 | `info` in production, `debug` locally                                                              |
+| `DISCORD_API_URL`       | dashboard                           | Discord API base for user calls; default `https://discord.com/api/v10`, a mock in end-to-end tests |
 
 ## Architecture rules
 

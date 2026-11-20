@@ -1,13 +1,28 @@
 services:
   postgres:
     image: postgres:17-alpine
-    environment: { POSTGRES_USER: welcomer, POSTGRES_PASSWORD: welcomer, POSTGRES_DB: welcomer }
+    environment:
+      {
+        POSTGRES_USER: welcomer,
+        POSTGRES_PASSWORD: welcomer,
+        POSTGRES_DB: welcomer,
+      }
     ports: ["5432:5432"]
     volumes: [postgres:/var/lib/postgresql/data]
-    healthcheck: { test: ["CMD", "pg_isready", "-U", "welcomer"], interval: 5s, retries: 10 }
+    healthcheck:
+      {
+        test: ["CMD", "pg_isready", "-U", "welcomer"],
+        interval: 5s,
+        retries: 10,
+      }
   rabbitmq:
     image: rabbitmq:4.4-management
     ports: ["5672:5672", "15672:15672"]
-    healthcheck: { test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"], interval: 10s, retries: 10 }
+    healthcheck:
+      {
+        test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"],
+        interval: 10s,
+        retries: 10,
+      }
 volumes:
   postgres:

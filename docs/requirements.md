@@ -18,47 +18,47 @@ Welcomer helps the managers of a Discord server greet the members who join and s
 | Visitor        | Not signed in. Reads the [public pages](./business/public-pages.md).                                                                                             |
 | User           | Signed in with a Discord account. Sees the servers they manage, those where the bot is present first. Invites the bot to a server where it is absent. Signs out. |
 | Server manager | Owns the server, **or** has the Discord "Manage Server" permission there, **or** has "Administrator".                                                            |
-| Admin          | Member of the Welcomer team. Uses the back-office to find any server where the bot is present, then manages it like a server manager.                           |
+| Admin          | Member of the Welcomer team. Uses the back-office to find any server where the bot is present, then manages it like a server manager.                            |
 
 ## Domains
 
 Each rule has an identifier (for example R-MSG-8) and, when it has edge cases, examples written as Given / When / Then.
 
-| Domain                                              | Prefix       | Covers                                                                 |
-| --------------------------------------------------- | ------------ | ---------------------------------------------------------------------- |
-| [Sign-in and server access](./business/access.md)   | R-ACC        | sign-in, session, who manages a server, server list                    |
-| [Bot on a server](./business/servers.md)            | R-SRV        | invitation, permissions, member count, bot leaving and coming back     |
-| [Configurations](./business/configurations.md)      | R-CFG        | sending, library, activation, deletion, channel gone                   |
-| [Messages](./business/messages.md)                  | R-MSG, R-VAR | embeds, empty message, Discord limits, default message, variables      |
-| [Editor](./business/editor.md)                      | R-EDT        | preview, warnings, draft, validation, two people at once               |
-| [Custom images](./business/images.md)               | R-IMG        | library, layouts, avatar, texts, background, place in the message      |
-| [Bot commands](./business/commands.md)              | R-CMD        | `/help`, `/status`, `/test`                                            |
-| [Statistics](./business/statistics.md)              | R-STA        | events, daily totals, what is counted, days, statistics page           |
-| [Public pages](./business/public-pages.md)          | R-PUB        | landing, status page                                                   |
-| [Back-office](./business/back-office.md)            | R-ADM        | admin access, server list and search, managing a server                |
-| [Privacy and personal data](./business/privacy.md)  | R-PRV        | personal data kept, retention, legal basis, rights of users            |
+| Domain                                             | Prefix       | Covers                                                             |
+| -------------------------------------------------- | ------------ | ------------------------------------------------------------------ |
+| [Sign-in and server access](./business/access.md)  | R-ACC        | sign-in, session, who manages a server, server list                |
+| [Bot on a server](./business/servers.md)           | R-SRV        | invitation, permissions, member count, bot leaving and coming back |
+| [Configurations](./business/configurations.md)     | R-CFG        | sending, library, activation, deletion, channel gone               |
+| [Messages](./business/messages.md)                 | R-MSG, R-VAR | embeds, empty message, Discord limits, default message, variables  |
+| [Editor](./business/editor.md)                     | R-EDT        | preview, warnings, draft, validation, two people at once           |
+| [Custom images](./business/images.md)              | R-IMG        | library, layouts, avatar, texts, background, place in the message  |
+| [Bot commands](./business/commands.md)             | R-CMD        | `/help`, `/status`, `/test`                                        |
+| [Statistics](./business/statistics.md)             | R-STA        | events, daily totals, what is counted, days, statistics page       |
+| [Public pages](./business/public-pages.md)         | R-PUB        | landing, status page                                               |
+| [Back-office](./business/back-office.md)           | R-ADM        | admin access, server list and search, managing a server            |
+| [Privacy and personal data](./business/privacy.md) | R-PRV        | personal data kept, retention, legal basis, rights of users        |
 
 ## Cross-domain views
 
-| Document                                        | Covers                                                                    |
-| ----------------------------------------------- | ------------------------------------------------------------------------- |
-| [User journeys](./business/journeys.md)         | user stories of each actor, linked to the rules                           |
-| [Screen map](./business/screens.md)             | the screens, what each shows, how people move between them                |
-| [Domain model](./business/domain-model.md)      | the business objects and how they relate                                  |
-| [Business processes](./business/processes.md)   | member arrival or departure, bot arrival and departure, edit and validate |
+| Document                                      | Covers                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------------- |
+| [User journeys](./business/journeys.md)       | user stories of each actor, linked to the rules                           |
+| [Screen map](./business/screens.md)           | the screens, what each shows, how people move between them                |
+| [Domain model](./business/domain-model.md)    | the business objects and how they relate                                  |
+| [Business processes](./business/processes.md) | member arrival or departure, bot arrival and departure, edit and validate |
 
 ## Data the product keeps
 
-| Data                                 | Produced by                                | Used by                        |
-| ------------------------------------ | ------------------------------------------ | ------------------------------ |
-| Servers where the bot is present     | the bot                                    | the dashboard, the back-office |
-| Configuration library of each server | a manager or an admin, on the dashboard    | the bot                        |
-| Image library of each server         | a manager or an admin, on the dashboard    | the bot                        |
-| Statistics: events and daily totals  | the bot                                    | the dashboard                  |
-| Users who signed in                  | the dashboard                              | the dashboard                  |
-| Sign-in sessions of users            | the dashboard                              | the dashboard                  |
-| Technical logs                       | the bot, the dashboard                     | the Welcomer team              |
-| List of admins                       | the Welcomer team                          | the back-office                |
+| Data                                 | Produced by                             | Used by                        |
+| ------------------------------------ | --------------------------------------- | ------------------------------ |
+| Servers where the bot is present     | the bot                                 | the dashboard, the back-office |
+| Configuration library of each server | a manager or an admin, on the dashboard | the bot                        |
+| Image library of each server         | a manager or an admin, on the dashboard | the bot                        |
+| Statistics: events and daily totals  | the bot                                 | the dashboard                  |
+| Users who signed in                  | the dashboard                           | the dashboard                  |
+| Sign-in sessions of users            | the dashboard                           | the dashboard                  |
+| Technical logs                       | the bot, the dashboard                  | the Welcomer team              |
+| List of admins                       | the Welcomer team                       | the back-office                |
 
 ## Non-functional needs
 

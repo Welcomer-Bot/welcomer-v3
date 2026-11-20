@@ -4,13 +4,13 @@ What each part of Welcomer exchanges with the others and with Discord. A change 
 
 ## Database: who writes what
 
-| Table                                   | Written by                       | Read by                    |
-| --------------------------------------- | -------------------------------- | -------------------------- |
-| server                                  | bot                              | dashboard                  |
-| configuration, active_configuration, image | dashboard                     | bot                        |
-| stat_event, daily_server_total, daily_send_total | bot                     | dashboard                  |
-| shard_status, bot_status                | gateway                          | dashboard (status page), bot (`/status`) |
-| user, session, account, verification   | dashboard (Better Auth)          | dashboard                  |
+| Table                                            | Written by              | Read by                                  |
+| ------------------------------------------------ | ----------------------- | ---------------------------------------- |
+| server                                           | bot                     | dashboard                                |
+| configuration, active_configuration, image       | dashboard               | bot                                      |
+| stat_event, daily_server_total, daily_send_total | bot                     | dashboard                                |
+| shard_status, bot_status                         | gateway                 | dashboard (status page), bot (`/status`) |
+| user, session, account, verification             | dashboard (Better Auth) | dashboard                                |
 
 The bot never writes configurations; the dashboard never writes statistics (R-STA-1). The shapes of `configuration.message` and `image.texts` are defined once, as schemas in `packages/domain`, and checked on every write and read.
 
@@ -48,12 +48,12 @@ No cache of backgrounds: each image downloads its background again. shortcut: no
 
 ## Discord application
 
-| Setting                    | Value                                                                                                     |
-| -------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Public bot                 | on                                                                                                        |
-| Requires OAuth2 code grant | off                                                                                                       |
-| Install context            | server install only                                                                                       |
-| Gateway intents            | `GUILDS` and `GUILD_MEMBERS` (privileged, already approved for the application) ([Discord, gateway intents](https://docs.discord.com/developers/events/gateway#gateway-intents)) |
+| Setting                    | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public bot                 | on                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Requires OAuth2 code grant | off                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Install context            | server install only                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Gateway intents            | `GUILDS` and `GUILD_MEMBERS` (privileged, already approved for the application) ([Discord, gateway intents](https://docs.discord.com/developers/events/gateway#gateway-intents))                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Commands                   | registered with one bulk overwrite by the `register-commands` command of the bot app, run by hand until deploying is automated, `PUT /applications/<id>/commands` ([Discord, bulk overwrite](https://docs.discord.com/developers/interactions/application-commands#bulk-overwrite-global-application-commands)); global; `contexts: [0]` (server only); `/test` has `default_member_permissions: "32"` (Manage Server) and a required option `type` with the choices welcome and goodbye ([Discord, application commands](https://docs.discord.com/developers/interactions/application-commands#application-command-object-application-command-structure)) |
 
 ## Bot and dashboard to Discord: REST proxy
@@ -75,8 +75,8 @@ No cache of backgrounds: each image downloads its background again. shortcut: no
 
 ## Health endpoints
 
-| Service   | Check                                                      | Used by                        |
-| --------- | ---------------------------------------------------------- | ------------------------------ |
-| dashboard | `GET /api/health`: 200 `{ "status": "ok" }` when the database answers, else 503 | Compose healthcheck                 |
-| bot, rest | process-level healthcheck command in Compose               | Compose healthcheck            |
-| gateway   | `shard_status` rows fresher than 1 minute                  | status page                     |
+| Service   | Check                                                                           | Used by             |
+| --------- | ------------------------------------------------------------------------------- | ------------------- |
+| dashboard | `GET /api/health`: 200 `{ "status": "ok" }` when the database answers, else 503 | Compose healthcheck |
+| bot, rest | process-level healthcheck command in Compose                                    | Compose healthcheck |
+| gateway   | `shard_status` rows fresher than 1 minute                                       | status page         |

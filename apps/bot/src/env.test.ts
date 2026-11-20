@@ -16,7 +16,11 @@ const processes = [
     name: "rest",
     required: "REST_PROXY_SECRET",
     schema: restEnv,
-    complete: { DISCORD_TOKEN: "t", DISCORD_CLIENT_ID: "1", REST_PROXY_SECRET: "s" },
+    complete: {
+      DISCORD_TOKEN: "t",
+      DISCORD_CLIENT_ID: "1",
+      REST_PROXY_SECRET: "s",
+    },
   },
   {
     name: "bot",

@@ -14,11 +14,11 @@ Few tests, on the business rules of [`../business/`](../business/). Tests cover 
 
 As the Next.js testing guides recommend: business logic first, Vitest for synchronous components, end-to-end for async Server Components, which Vitest does not support (Next.js, Vitest guide, in `node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md` once installed) **[verify at build]**.
 
-| Level      | Tool                           | What                                                                                  |
-| ---------- | ------------------------------ | ------------------------------------------------------------------------------------- |
+| Level      | Tool                           | What                                                                                                                                                                                                               |
+| ---------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Business   | Vitest                         | rules in `packages/domain` and `packages/card`; services and repositories against a real PostgreSQL where a rule depends on the database (activation swap, limit of 5, optimistic locking, event plus daily total) |
-| Component  | Vitest + React Testing Library | synchronous editor components that hold logic, with user-event and role queries       |
-| End-to-end | Playwright                     | a few journeys through the pages: sign in (stubbed), edit and validate, statistics    |
+| Component  | Vitest + React Testing Library | synchronous editor components that hold logic, with user-event and role queries                                                                                                                                    |
+| End-to-end | Playwright                     | a few journeys through the pages: sign in (stubbed), edit and validate, statistics                                                                                                                                 |
 
 ## Not tested
 

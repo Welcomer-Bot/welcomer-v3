@@ -47,8 +47,8 @@ A message is what the bot posts for a configuration: a text, embeds and, optiona
 
 - **R-MSG-10** A new configuration starts with the default message of its type.
 
-  | Type    | Text                                              | Embed                                                                                                                                          |
-  | ------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+  | Type    | Text                                              | Embed                                                                                                                                           |
+  | ------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
   | Welcome | `Welcome {{member.mention}} to {{server.name}}`   | title "Welcome to the server", description `Welcome {{member.mention}} to {{server.name}}`, field "Member count" = `{{server.memberCount}}`     |
   | Goodbye | `Goodbye {{member.mention}} from {{server.name}}` | title "Goodbye from the server", description `Goodbye {{member.mention}} from {{server.name}}`, field "Member count" = `{{server.memberCount}}` |
 
@@ -65,19 +65,19 @@ A manager inserts variables in a message. The bot replaces each one when it post
 - **R-VAR-3** An unknown variable is shown as written. The dashboard warns about it without blocking.
 - **R-VAR-4** Each variable has the maximum length below. A length marked "set by Welcomer" is not documented by Discord.
 
-  | Variable                          | Replaced by                                                                                  | Max length | Source of the length                                                    |
-  | --------------------------------- | -------------------------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------- |
-  | `{{member.mention}}`              | mention of the member                                                                        | 23         | mention format around an identifier of 20 digits at most                |
-  | `{{member.username}}`             | the member's username                                                                        | 32         | Discord: usernames are 2 to 32 characters                               |
+  | Variable                          | Replaced by                                                                                                                                                                        | Max length | Source of the length                                                    |
+  | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------- |
+  | `{{member.mention}}`              | mention of the member                                                                                                                                                              | 23         | mention format around an identifier of 20 digits at most                |
+  | `{{member.username}}`             | the member's username                                                                                                                                                              | 32         | Discord: usernames are 2 to 32 characters                               |
   | `{{member.displayName}}`          | the member's nickname on the server, otherwise their display name, otherwise their username. On departure Discord no longer gives the nickname, so it starts from the display name | 32         | Discord: nicknames are 1 to 32 characters; display name set by Welcomer |
-  | `{{member.id}}`                   | the member's identifier                                                                      | 20         | Discord identifiers have 20 digits at most                              |
-  | `{{member.avatar}}`               | link to the member's avatar                                                                  | 128        | set by Welcomer                                                         |
-  | `{{server.name}}`                 | the server's name                                                                            | 100        | Discord: server names are 2 to 100 characters                           |
-  | `{{server.id}}`                   | the server's identifier                                                                      | 20         | Discord identifiers have 20 digits at most                              |
-  | `{{server.memberCount}}`          | number of members                                                                            | 10         | set by Welcomer                                                         |
-  | `{{server.memberCountFormatted}}` | number of members, thousands separated (1,234)                                               | 13         | set by Welcomer                                                         |
-  | `{{channel.name}}`                | name of the channel where the message is posted                                              | 100        | Discord: channel names are 1 to 100 characters                          |
-  | `{{channel.id}}`                  | identifier of the channel where the message is posted                                        | 20         | Discord identifiers have 20 digits at most                              |
+  | `{{member.id}}`                   | the member's identifier                                                                                                                                                            | 20         | Discord identifiers have 20 digits at most                              |
+  | `{{member.avatar}}`               | link to the member's avatar                                                                                                                                                        | 128        | set by Welcomer                                                         |
+  | `{{server.name}}`                 | the server's name                                                                                                                                                                  | 100        | Discord: server names are 2 to 100 characters                           |
+  | `{{server.id}}`                   | the server's identifier                                                                                                                                                            | 20         | Discord identifiers have 20 digits at most                              |
+  | `{{server.memberCount}}`          | number of members                                                                                                                                                                  | 10         | set by Welcomer                                                         |
+  | `{{server.memberCountFormatted}}` | number of members, thousands separated (1,234)                                                                                                                                     | 13         | set by Welcomer                                                         |
+  | `{{channel.name}}`                | name of the channel where the message is posted                                                                                                                                    | 100        | Discord: channel names are 1 to 100 characters                          |
+  | `{{channel.id}}`                  | identifier of the channel where the message is posted                                                                                                                              | 20         | Discord identifiers have 20 digits at most                              |
 
 ## Examples
 

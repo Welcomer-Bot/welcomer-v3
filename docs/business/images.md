@@ -28,9 +28,9 @@ The picture the bot generates for each member, with their avatar and name.
 
   Positions in pixels, from the top left corner. A text position is its baseline; its width is the widest it may be before it shrinks (R-IMG-12).
 
-  | Element  | Left                                  | Center                              | Right                                 |
-  | -------- | ------------------------------------- | ----------------------------------- | ------------------------------------- |
-  | Avatar   | circle of 200, top left at 50, 75     | circle of 140, top left at 330, 50  | circle of 200, top left at 550, 75    |
+  | Element  | Left                                     | Center                                     | Right                                  |
+  | -------- | ---------------------------------------- | ------------------------------------------ | -------------------------------------- |
+  | Avatar   | circle of 200, top left at 50, 75        | circle of 140, top left at 330, 50         | circle of 200, top left at 550, 75     |
   | Title    | starts at x 290, baseline 140, width 470 | centered on x 400, baseline 225, width 600 | ends at x 510, baseline 140, width 470 |
   | Name     | starts at x 290, baseline 190, width 470 | centered on x 400, baseline 265, width 700 | ends at x 510, baseline 190, width 470 |
   | Subtitle | starts at x 290, baseline 240, width 470 | centered on x 400, baseline 310, width 700 | ends at x 510, baseline 240, width 470 |
@@ -47,11 +47,12 @@ The picture the bot generates for each member, with their avatar and name.
 - **R-IMG-12** A text too long for its area is shrunk to fit, down to 20 pixels, then cut with "…".
 - **R-IMG-13** For each text, the manager chooses a color, a font, a weight (normal or bold) and a size (small, medium or large). Sizes in pixels, and defaults of a new image:
 
-  | Text     | Small | Medium | Large | Default content                         | Default style            |
-  | -------- | ----- | ------ | ----- | --------------------------------------- | ------------------------ |
-  | Title    | 36    | 48     | 60    | `Welcome to {{server.name}}`            | white, Nunito, bold, medium |
-  | Name     | 26    | 35     | 44    | `{{member.displayName}}` (fixed)        | white, Nunito, bold, medium |
+  | Text     | Small | Medium | Large | Default content                          | Default style                 |
+  | -------- | ----- | ------ | ----- | ---------------------------------------- | ----------------------------- |
+  | Title    | 36    | 48     | 60    | `Welcome to {{server.name}}`             | white, Nunito, bold, medium   |
+  | Name     | 26    | 35     | 44    | `{{member.displayName}}` (fixed)         | white, Nunito, bold, medium   |
   | Subtitle | 25    | 33     | 41    | `You are member #{{server.memberCount}}` | white, Nunito, normal, medium |
+
 - **R-IMG-14** Fonts: Nunito (default), Montserrat, Poppins, Lato, Open Sans. All are under a free license.
 
 ### Background
