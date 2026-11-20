@@ -8,7 +8,7 @@ Quality gate on every change, then the Docker images of each app on `main`. Runs
 - `main` is protected: changes arrive only by pull request; direct pushes are refused.
 - Required status checks: every job of the CI workflow below, with "require branches to be up to date" ([GitHub, protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches): "Required status checks must have a successful, skipped, or neutral status").
 - Job names are unique across workflows, so required checks are unambiguous (same source).
-- No required approval: the owner works alone, and the author of a pull request cannot approve it ([GitHub, approving a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews)) **[verify at build]**.
+- No required approval: the owner works alone, and the author of a pull request cannot approve it ([GitHub, approving a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews)) **[verify at build: on the first pull request, in slice 0 Task 18, by the owner]**.
 - Commit messages and pull request titles follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
 
 ## CI workflow: the quality gate
@@ -29,7 +29,7 @@ Each job checks out the repository first, then calls a shared composite action f
 Also on every pull request:
 
 - **CodeQL** default setup for JavaScript and TypeScript, which "does not currently require special configuration" ([GitHub, CodeQL default setup](https://docs.github.com/en/code-security/code-scanning/enabling-code-scanning/configuring-default-setup-for-code-scanning)); it needs a public repository or GitHub Code Security; the repository is public.
-- **Dependency review** of added packages, and **Dependabot** version updates for npm, GitHub Actions and Docker **[verify at build]**.
+- **Dependency review** of added packages, and **Dependabot** version updates for npm, GitHub Actions and Docker. Checked in slice 0: Yarn v1 to v4 use the `npm` ecosystem ([GitHub, supported ecosystems](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)); the two Dockerfiles are listed with `directories` ([Dependabot options](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference): "Use `directories` to define a list of multiple directories of manifests"). Dependency review uses GitHub's minimal workflow.
 
 ## Image workflow
 
