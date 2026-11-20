@@ -5,7 +5,8 @@
   "private": true,
   "exports": {
     "./base": "./base.js",
-    "./strict": "./strict.js"
+    "./strict": "./strict.js",
+    "./domain": "./domain.js"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
