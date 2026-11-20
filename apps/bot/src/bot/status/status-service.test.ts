@@ -19,10 +19,16 @@ const aShard = (overrides: Partial<ShardStatus> = {}): ShardStatus => ({
   ...overrides,
 });
 
-const serviceWith = (shards: ShardStatus[]) => {
+const serviceWith = (
+  shards: ShardStatus[],
+  botStatus: Awaited<ReturnType<StatusRepository["botStatus"]>> = {
+    startedAt,
+    shardCount: 2,
+  },
+) => {
   const repository: StatusRepository = {
     shards: () => Promise.resolve(shards),
-    botStatus: () => Promise.resolve({ startedAt, shardCount: 2 }),
+    botStatus: () => Promise.resolve(botStatus),
   };
   return createStatusService(repository, () => now, {
     startedAt,
@@ -52,5 +58,17 @@ describe("/status", () => {
       { connected: true, shardId: 0 },
       { connected: false, shardId: 0 },
     ]);
+  });
+
+  it("R-CMD-2: not connected, with no connection, before the gateway has ever run", async () => {
+    const neverStarted = serviceWith([], null);
+
+    const answer = await neverStarted.get(serverOnConnection0);
+
+    expect(answer).toMatchObject({
+      connected: false,
+      averageLatencyMs: null,
+      shardId: null,
+    });
   });
 });

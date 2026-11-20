@@ -7,7 +7,7 @@ import {
 
 export interface StatusRepository {
   shards(): Promise<ShardStatus[]>;
-  botStatus(): Promise<{ startedAt: Date; shardCount: number }>;
+  botStatus(): Promise<{ startedAt: Date; shardCount: number } | null>;
 }
 
 export interface Runtime {
@@ -21,12 +21,12 @@ export const createStatusService = (
   runtime: Runtime,
 ) => ({
   async get(serverId: string) {
-    const [shards, { shardCount }] = await Promise.all([
+    const [shards, botStatus] = await Promise.all([
       repository.shards(),
       repository.botStatus(),
     ]);
     const now = clock();
-    const shardId = shardOf(serverId, shardCount);
+    const shardId = botStatus && shardOf(serverId, botStatus.shardCount);
     const shard = shards.find((candidate) => candidate.shardId === shardId);
     return {
       connected: shard !== undefined && effectiveState(shard, now) === "online",

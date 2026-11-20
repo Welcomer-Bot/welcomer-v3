@@ -17,9 +17,7 @@ export const prismaStatusRepository: StatusRepository = {
     );
   },
   async botStatus() {
-    const { startedAt, shardCount } = await prisma.botStatus.findUniqueOrThrow({
-      where: { id: 1 },
-    });
-    return { startedAt, shardCount };
+    const row = await prisma.botStatus.findUnique({ where: { id: 1 } });
+    return row && { startedAt: row.startedAt, shardCount: row.shardCount };
   },
 };
