@@ -84,6 +84,7 @@ Strict, checked in review:
 ## Tests locally
 
 - Database tests use a separate `welcomer_test` database, so they never wipe the development data. Create it once with `docker compose -f compose.dev.yaml exec postgres createdb -U welcomer welcomer_test`, migrate it after each new migration with `DATABASE_URL=postgresql://welcomer:welcomer@localhost:5432/welcomer_test yarn turbo run db:deploy`, and put the same `DATABASE_URL` in front of `yarn test`. CI uses a fresh `welcomer` database.
+- End-to-end tests read the seed, as CI does, so run them on `welcomer_test` freshly seeded: the database tests empty its tables. `DATABASE_URL=postgresql://welcomer:welcomer@localhost:5432/welcomer_test yarn turbo run db:seed`, then the same `DATABASE_URL` in front of `yarn e2e`; the dashboard's process environment wins over its `.env`.
 - One test file: `yarn test --filter=<workspace> -- <path>`, path relative to the workspace. Turborepo passes the arguments after `--` to every task of the run ([Turborepo, run](https://turborepo.dev/docs/reference/run)), so without `--filter` the other workspaces fail with "No test files found".
 - WebKit needs system libraries: `sudo yarn workspace dashboard playwright install-deps` once per machine; CI installs them with `playwright install --with-deps`.
 - Vitest: Discord REST is mocked with MSW in Node ([MSW](https://mswjs.io/docs)).
