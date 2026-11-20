@@ -7,13 +7,16 @@ const iconHash = (icon: bigint | undefined) =>
   icon === undefined ? null : iconBigintToHash(icon);
 
 export const registerGuildEvents = (servers: ServerService) => {
+  // Without the shard pair, the shard count is unknown, so no server can be matched to this connection.
   bot.events.ready = ({ shardId, guilds, shard }) =>
-    track(
-      servers.shardReady(
-        { id: shardId, count: shard?.[1] ?? 1 },
-        guilds.map(String),
-      ),
-    );
+    shard?.[1] === undefined
+      ? undefined
+      : track(
+          servers.shardReady(
+            { id: shardId, count: shard[1] },
+            guilds.map(String),
+          ),
+        );
   bot.events.guildCreate = (guild) =>
     track(
       servers.joined({
