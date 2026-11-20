@@ -1,24 +1,29 @@
 import type { DiscordGatewayPayload } from "@discordeno/bot";
 import { connect as connectAmqp, type ConsumeMessage } from "amqplib";
 import { bot, env, logger } from "./bot.ts";
+import { registerGuildEvents } from "./events/guilds.ts";
 import "./events/interactions/create.ts";
+import { registerMemberEvents } from "./events/members.ts";
 import "./events/nodejs.ts";
+import { prismaServerRepository } from "./servers/server-repository.ts";
+import { createServerService } from "./servers/server-service.ts";
 
 const QUEUE = "gateway-events";
 
+const servers = createServerService(prismaServerRepository, () => new Date());
+registerGuildEvents(servers);
+registerMemberEvents(servers);
+
 await connectToRabbitMQ();
 
-async function handleGatewayEvent(
+function handleGatewayEvent(
   payload: DiscordGatewayPayload,
   shardId: number,
-): Promise<void> {
+): void {
   bot.events.raw?.(payload, shardId);
 
   // If we don't have the event type we don't process it further
   if (!payload.t) return;
-
-  // Run the dispatch check
-  await bot.events.dispatchRequirements?.(payload, shardId);
 
   bot.handlers[payload.t](bot, payload, shardId);
 }
@@ -56,7 +61,7 @@ async function connectToRabbitMQ(): Promise<void> {
 
   if (!channel) return;
 
-  const handleMessage = async (message: ConsumeMessage | null) => {
+  const handleMessage = (message: ConsumeMessage | null) => {
     if (!message) return;
 
     try {
@@ -64,7 +69,7 @@ async function connectToRabbitMQ(): Promise<void> {
         message.content.toString(),
       ) as GatewayEvent;
 
-      await handleGatewayEvent(messageBody.payload, messageBody.shardId);
+      handleGatewayEvent(messageBody.payload, messageBody.shardId);
     } catch (error) {
       logger.error(
         { err: error },
@@ -77,9 +82,7 @@ async function connectToRabbitMQ(): Promise<void> {
 
   await channel.assertQueue(QUEUE, { durable: true });
   await channel.prefetch(100);
-  await channel.consume(QUEUE, (message) => void handleMessage(message), {
-    noAck: false,
-  });
+  await channel.consume(QUEUE, handleMessage, { noAck: false });
 }
 
 interface GatewayEvent {

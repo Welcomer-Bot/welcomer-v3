@@ -41,6 +41,8 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://welcomer:welcomer@localhost:5432/welcomer
     services:
       postgres:
         image: postgres:17-alpine
