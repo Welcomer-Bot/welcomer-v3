@@ -28,8 +28,8 @@ Checked at start by a Zod schema in each app ([architecture, 8.1](./architecture
 | ----------------------- | -------------------------- | ---------------------------------------------------------- |
 | `DATABASE_URL`          | gateway, bot, dashboard, migrations | Supabase session pooler URL                       |
 | `RABBITMQ_URL`          | gateway, bot               | queue                                                      |
-| `DISCORD_TOKEN`         | gateway, rest              | bot token                                                  |
-| `DISCORD_CLIENT_ID`     | rest, dashboard            | application identifier                                     |
+| `DISCORD_TOKEN`         | gateway, rest, register-commands | bot token                                            |
+| `DISCORD_CLIENT_ID`     | rest, dashboard, register-commands | application identifier                             |
 | `DISCORD_CLIENT_SECRET` | dashboard                  | OAuth2 secret                                              |
 | `REST_PROXY_URL`        | bot, dashboard             | internal address of `rest`                                 |
 | `REST_PROXY_SECRET`     | rest, bot, dashboard       | shared secret header                                       |

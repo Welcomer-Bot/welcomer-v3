@@ -15,7 +15,7 @@ Run from the repository root (created in slice 0):
 
 - `yarn dev` — gateway, rest, bot and dashboard; needs `docker compose -f compose.dev.yaml up -d` and each app's `.env`
 - `yarn lint`, `yarn format`, `yarn typecheck`, `yarn test`, `yarn e2e`, `yarn build` — the quality gate; run them before committing
-- `yarn test -- <path>` — one test file
+- `yarn test --filter=<workspace> -- <path>` — one test file, path relative to that workspace
 - `yarn db:migrate`, `yarn db:seed` — local database
 
 Tests that touch the database need `DATABASE_URL` and the dev Compose stack.
