@@ -19,12 +19,17 @@ export const registerGuildEvents = (servers: ServerService) => {
         );
   bot.events.guildCreate = (guild) =>
     track(
-      servers.joined({
-        id: guild.id.toString(),
-        name: guild.name,
-        memberCount: guild.memberCount,
-        icon: iconHash(guild.icon),
-      }),
+      guild.joinedAt === undefined
+        ? Promise.reject(new Error("GUILD_CREATE without joined_at"))
+        : servers.joined(
+            {
+              id: guild.id.toString(),
+              name: guild.name,
+              memberCount: guild.memberCount,
+              icon: iconHash(guild.icon),
+            },
+            new Date(guild.joinedAt),
+          ),
     );
   bot.events.guildUpdate = (guild) =>
     track(

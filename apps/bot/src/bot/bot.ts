@@ -14,6 +14,7 @@ export const bot = createBot({
       name: true,
       icon: true,
       memberCount: true,
+      joinedAt: true,
     },
     member: {
       guildId: true,

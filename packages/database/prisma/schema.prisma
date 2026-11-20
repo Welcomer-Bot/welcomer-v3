@@ -89,6 +89,7 @@ model Server {
   memberCount Int      @map("member_count")
   icon        String?
   botJoinedAt DateTime @map("bot_joined_at") @db.Timestamptz
+  recordedAt  DateTime @map("recorded_at") @db.Timestamptz
 
   @@map("server")
 }

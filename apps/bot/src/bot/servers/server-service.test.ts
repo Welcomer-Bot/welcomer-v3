@@ -7,6 +7,7 @@ import { createServerService } from "./server-service.ts";
 const T1 = new Date("2026-11-20T10:00:00Z");
 const T2 = new Date("2026-11-20T11:00:00Z");
 const T3 = new Date("2026-11-20T12:00:00Z");
+const JOINED_ON_DISCORD = new Date("2025-06-01T00:00:00Z");
 
 const serviceAt = (now: Date) =>
   createServerService(prismaServerRepository, () => now);
@@ -15,35 +16,39 @@ const findServer = (id: string) => prisma.server.findUnique({ where: { id } });
 beforeEach(resetServers);
 
 describe("servers", () => {
-  it("R-SRV-3: records a server the bot joins", async () => {
+  it("R-SRV-3, R-ADM-3: records a server the bot joins, with the date Discord gives", async () => {
     const server = aServer();
 
-    await serviceAt(T1).joined(server);
+    await serviceAt(T1).joined(server, JOINED_ON_DISCORD);
 
     expect(await findServer(server.id)).toEqual({
       id: server.id,
       name: server.name,
       memberCount: server.memberCount,
       icon: server.icon,
-      botJoinedAt: T1,
+      botJoinedAt: JOINED_ON_DISCORD,
+      recordedAt: T1,
     });
   });
 
   it("R-SRV-3: a known server is updated, never reset", async () => {
-    await serviceAt(T1).joined(aServer());
+    await serviceAt(T1).joined(aServer(), JOINED_ON_DISCORD);
 
-    await serviceAt(T2).joined(aServer({ name: "Renamed", memberCount: 20 }));
+    await serviceAt(T2).joined(
+      aServer({ name: "Renamed", memberCount: 20 }),
+      JOINED_ON_DISCORD,
+    );
 
     expect(await findServer(aServer().id)).toMatchObject({
       name: "Renamed",
       memberCount: 20,
-      botJoinedAt: T1,
+      recordedAt: T1,
     });
   });
 
   it("R-SRV-4: an arrival adds one member and a departure removes one", async () => {
     const service = serviceAt(T1);
-    await service.joined(aServer({ memberCount: 10 }));
+    await service.joined(aServer({ memberCount: 10 }), JOINED_ON_DISCORD);
 
     await service.memberArrived(aServer().id);
     const afterArrival = await findServer(aServer().id);
@@ -59,8 +64,8 @@ describe("servers", () => {
     const service = serviceAt(T1);
     const kept = aServer({ id: "222078108985982976" });
     const left = aServer({ id: "222078108994371584" });
-    await service.joined(kept);
-    await service.joined(left);
+    await service.joined(kept, JOINED_ON_DISCORD);
+    await service.joined(left, JOINED_ON_DISCORD);
 
     await service.left(kept.id, true);
     await service.left(left.id, false);
@@ -76,8 +81,9 @@ describe("servers", () => {
     const b = aServer({ id: "222078108985982976" });
     const c = aServer({ id: "222078108981788672" });
     const d = aServer({ id: "222078108994371584" });
-    for (const server of [a, b, c]) await serviceAt(T1).joined(server);
-    await serviceAt(T3).joined(d);
+    for (const server of [a, b, c])
+      await serviceAt(T1).joined(server, JOINED_ON_DISCORD);
+    await serviceAt(T3).joined(d, JOINED_ON_DISCORD);
 
     await serviceAt(T2).shardReady({ id: 0, count: 2 }, [b.id]);
 

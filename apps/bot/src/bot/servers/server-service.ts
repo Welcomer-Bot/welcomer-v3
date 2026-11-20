@@ -1,14 +1,14 @@
 import type { Server } from "@repo/domain";
 
 export interface ServerRepository {
-  upsert(server: Server, joinedAt: Date): Promise<void>;
+  upsert(server: Server, joinedAt: Date, recordedAt: Date): Promise<void>;
   update(id: string, changes: Pick<Server, "name" | "icon">): Promise<void>;
   addMembers(id: string, delta: 1 | -1): Promise<void>;
   remove(id: string): Promise<void>;
   removeMissing(
     shard: { id: number; count: number },
     presentIds: string[],
-    joinedBefore: Date,
+    recordedBefore: Date,
   ): Promise<void>;
 }
 
@@ -16,7 +16,8 @@ export const createServerService = (
   repository: ServerRepository,
   clock: () => Date,
 ) => ({
-  joined: (server: Server) => repository.upsert(server, clock()),
+  joined: (server: Server, joinedAt: Date) =>
+    repository.upsert(server, joinedAt, clock()),
   updated: (id: string, changes: Pick<Server, "name" | "icon">) =>
     repository.update(id, changes),
   memberArrived: (id: string) => repository.addMembers(id, 1),

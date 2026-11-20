@@ -8,6 +8,7 @@ CREATE TABLE "server" (
     "member_count" INTEGER NOT NULL,
     "icon" TEXT,
     "bot_joined_at" TIMESTAMPTZ NOT NULL,
+    "recorded_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "server_pkey" PRIMARY KEY ("id")
 );

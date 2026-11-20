@@ -12,6 +12,7 @@ async function main() {
       memberCount: 42,
       icon: null,
       botJoinedAt: seededAt,
+      recordedAt: seededAt,
     },
   });
   await prisma.botStatus.upsert({
