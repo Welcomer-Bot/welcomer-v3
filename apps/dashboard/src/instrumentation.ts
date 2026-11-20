@@ -1,5 +1,6 @@
-import { dashboardEnv } from "./env";
-
-export function register() {
-  dashboardEnv.parse(process.env);
+export async function register() {
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { checkEnvironment } = await import("./instrumentation-node");
+    checkEnvironment();
+  }
 }
