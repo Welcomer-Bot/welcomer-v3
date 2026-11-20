@@ -277,11 +277,11 @@ async function connectToRabbitMQ(): Promise<void> {
 
   if (!connection) return;
 
+  // amqplib emits "close" after "error", so only "close" reconnects.
   connection.on("close", () => {
     rabbitMQChannel = undefined;
     setTimeout(() => void connectToRabbitMQ(), 1000);
   });
-  // amqplib emits "close" after "error", so only "close" reconnects.
   connection.on("error", (error) => {
     logger.error(
       { err: error },
@@ -289,22 +289,33 @@ async function connectToRabbitMQ(): Promise<void> {
     );
   });
 
-  const channel = await connection.createChannel().catch((error: unknown) => {
-    logger.error(
-      { err: error },
-      "There was an error creating the RabbitMQ channel",
-    );
-  });
-
-  if (!channel) return;
-
-  const queue = await channel
-    .assertQueue(QUEUE, { durable: true })
-    .catch((error: unknown) => {
-      logger.error({ err: error }, "There was an error asserting the queue");
+  // Any channel failure closes the connection, so its "close" handler reconnects.
+  const closeConnection = () =>
+    connection.close().catch((error: unknown) => {
+      logger.debug(
+        { err: error },
+        "The RabbitMQ connection was already closed",
+      );
     });
 
-  if (!queue) return;
+  try {
+    const channel = await connection.createChannel();
+    channel.on("error", (error: unknown) => {
+      logger.error(
+        { err: error },
+        "There was an error in the RabbitMQ channel",
+      );
+    });
+    channel.on("close", () => {
+      rabbitMQChannel = undefined;
+      void closeConnection();
+    });
 
-  rabbitMQChannel = channel;
+    await channel.assertQueue(QUEUE, { durable: true });
+
+    rabbitMQChannel = channel;
+  } catch (error) {
+    logger.error({ err: error }, "Failed to set up the RabbitMQ channel");
+    await closeConnection();
+  }
 }

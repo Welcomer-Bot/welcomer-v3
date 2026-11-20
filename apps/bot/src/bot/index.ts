@@ -80,39 +80,53 @@ async function connectToRabbitMQ(): Promise<void> {
     );
   });
 
-  const channel = await connection.createChannel().catch((error: unknown) => {
-    logger.error(
-      { err: error },
-      "There was an error creating the RabbitMQ channel",
-    );
-  });
+  // Any channel failure closes the connection, so its "close" handler reconnects.
+  const closeConnection = () =>
+    connection.close().catch((error: unknown) => {
+      logger.debug(
+        { err: error },
+        "The RabbitMQ connection was already closed",
+      );
+    });
 
-  if (!channel) return;
-
-  const handleMessage = async (message: ConsumeMessage | null) => {
-    if (!message) return;
-
-    try {
-      const messageBody = JSON.parse(
-        message.content.toString(),
-      ) as GatewayEvent;
-
-      await handleGatewayEvent(messageBody.payload, messageBody.shardId);
-    } catch (error) {
+  try {
+    const channel = await connection.createChannel();
+    channel.on("error", (error: unknown) => {
       logger.error(
         { err: error },
-        "There was an error handling events received from RabbitMQ",
+        "There was an error in the RabbitMQ channel",
       );
-    } finally {
-      channel.ack(message);
-    }
-  };
+    });
+    channel.on("close", () => void closeConnection());
 
-  await channel.assertQueue(QUEUE, { durable: true });
-  await channel.prefetch(100);
-  await channel.consume(QUEUE, (message) => void handleMessage(message), {
-    noAck: false,
-  });
+    const handleMessage = async (message: ConsumeMessage | null) => {
+      if (!message) return;
+
+      try {
+        const messageBody = JSON.parse(
+          message.content.toString(),
+        ) as GatewayEvent;
+
+        await handleGatewayEvent(messageBody.payload, messageBody.shardId);
+      } catch (error) {
+        logger.error(
+          { err: error },
+          "There was an error handling events received from RabbitMQ",
+        );
+      } finally {
+        channel.ack(message);
+      }
+    };
+
+    await channel.assertQueue(QUEUE, { durable: true });
+    await channel.prefetch(100);
+    await channel.consume(QUEUE, (message) => void handleMessage(message), {
+      noAck: false,
+    });
+  } catch (error) {
+    logger.error({ err: error }, "Failed to set up the RabbitMQ channel");
+    await closeConnection();
+  }
 }
 
 interface GatewayEvent {
