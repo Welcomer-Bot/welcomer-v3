@@ -62,7 +62,7 @@ Checked at start by a Zod schema in each app ([architecture, 8.1](./architecture
 Strict, checked in review:
 
 - **Dependency rule** ([Clean Architecture, R. C. Martin](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)): source code dependencies point inwards only. `packages/domain` imports nothing from Prisma, Discord, discordeno, Next.js or the apps. Each package imports only what its `package.json` declares.
-- **Ports and adapters**: the domain and the services define the interfaces they need (repositories, Discord, clock); the apps implement them at the edge and wire them at start. Services never import an adapter.
+- **Ports and adapters**: the domain and the services define the interfaces they need (repositories, Discord, clock); the apps implement them at the edge and wire them at start. Services never import an adapter. Exception: the gateway is template infrastructure with no business rule, so it writes `shard_status` and `bot_status` through its repository without a service ([slice 1, Build results](../plans/1-bot-online.md#build-results)).
 - **Layers** of [architecture 5.3](./architecture.md#53-layers-inside-each-app): handlers, then services, then repositories. A handler never calls a repository; a service never builds an HTTP response or a Discord reply.
 - **Separate types**: domain types never carry Prisma, Discord or HTTP types; mapping happens in the adapter.
 - **Errors**: services throw typed domain errors; handlers map them ([architecture 8](./architecture.md#8-crosscutting-concepts)). No `catch` that hides an error.

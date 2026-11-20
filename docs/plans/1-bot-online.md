@@ -606,7 +606,7 @@ Built on branch `feat/slice-1-bot-online` (the coordinator's name for this slice
 
 Fixes and deviations, each at its root:
 
-- Task 1 not applied: editing `allow-ghsas` was refused by the agent's permission check (an advisory allowlist is an oversight change). The owner applies Task 1 by hand; ci-cd.md marks it as planned.
+- Task 1 not applied: editing `allow-ghsas` was refused by the agent's permission check. The `dependency-review` check passed on the pull request without it, so it is dropped (KISS).
 - Task 2: `packages/database/tsconfig.json` includes `prisma`, so typed lint finds `prisma/seed.ts` (the lint error names this fix: "Consider either including it in the tsconfig.json").
 - Task 4: each process parses its environment in the template module that first needs it (`gatewayManager.ts`, `restManager.ts`, `bot.ts`), not in `index.ts`: ES modules evaluate imports first, and those modules build their clients at load time.
 - Task 4: `apps/bot/tsconfig.json` sets `lib` and `target` to `es2024`, for `Promise.withResolvers` (TypeScript: ES2024 library). Node 26 runs ES2024.
@@ -617,6 +617,22 @@ Fixes and deviations, each at its root:
 - Task 6: the READY test's server D joins at a time after the READY clock (T3), not at the same instant, to match "joined after".
 - Task 9: `shardOf` uses `BigInt(22)`, not `22n`: the dashboard keeps create-next-app's `ES2017` target, which refuses BigInt literals.
 - Task 9: the page uses plain HTML elements; no HeroUI component was needed in this slice.
+
+Review fixes on the pull request:
+
+- Dashboard `lint` runs `next typegen` first: without `.next`, the generated `PageProps` type is missing and typed lint reports 20 `no-unsafe-*` errors. Next.js: "Types are generated during `next dev`, `next build` or `next typegen`" (`node_modules/next/dist/docs/01-app/01-getting-started/03-layouts-and-pages.md`). `typecheck` already did the same.
+- The bot acknowledges a message only after its handlers settle. discordeno calls each event without awaiting it, so each registered event hands its promise to `track()`, and the consumer awaits `Promise.allSettled` before `ack` (`bot/dispatch.ts`, with a test). Dispatch stays synchronous, so D6's clock reading is unchanged. A failed handler is logged with `shardId`, `serverId` and the event name.
+- RabbitMQ: a failure in `createChannel`, `assertQueue`, `prefetch` or `consume`, or a channel `close`, closes the connection, and its `close` handler reconnects. Checked locally: with a conflicting queue declared, the bot retries once per second, then consumes again once the conflict is gone.
+- The dashboard status service takes its repository as a port (`createStatusService(repository)`), wired once in `src/server/status/index.ts`.
+- Accepted: the bot and the dashboard each map `shard_status` rows in their own repository, one adapter per app, since the apps share no infrastructure code.
+- Accepted: the gateway writes status through its repository without a service; recorded in development.md, Architecture rules.
+- `/status` before the gateway ever ran: the repository returns `null`, and the reply says "Discord connection: not connected yet". Outside a server, the command replies "Use /status in a server." instead of throwing.
+- REST proxy: the hook returns the reply it sends (Fastify Hooks: "return reply"), and the secret is compared with `crypto.timingSafeEqual` after a length check, since it throws on different lengths.
+- Accepted: the REST proxy answers 500 on any Discord error, as the template does; the template documents no status passthrough.
+- `READY` without the shard pair skips the missed-departure cleanup, since no server can be matched to the connection.
+- `server.bot_joined_at` now holds Discord's `joined_at` from `GUILD_CREATE` (R-ADM-3, "date the bot joined"). The new `recorded_at` column holds when the bot first stored the row, and D6's guard uses it. The review said the docs already asked for `joined_at`; they did not, so contracts.md and data-model.md now say it. The slice's migration was regenerated, since it is not on `main` yet.
+- Local end-to-end tests run on `welcomer_test` freshly seeded (development.md).
+- Template comments that repeat the code are removed.
 
 Still open: Task 12 (owner live check), and the `yarn dev` start order between rest and gateway.
 
