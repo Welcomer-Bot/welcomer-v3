@@ -35,6 +35,7 @@ FROM base AS builder
 COPY --from=prepare /app/out/json/ .
 RUN yarn install --immutable
 COPY --from=prepare /app/out/full/ .
+RUN yarn turbo run db:generate --filter=@repo/database
 
 # ---
 FROM base AS runner
@@ -45,4 +46,4 @@ USER bot
 COPY --from=builder --chown=bot:nodejs /app .
 
 # Compose overrides the command for gateway, rest and register-commands.
-CMD ["node", "apps/bot/src/bot.ts"]
+CMD ["node", "apps/bot/src/bot/index.ts"]

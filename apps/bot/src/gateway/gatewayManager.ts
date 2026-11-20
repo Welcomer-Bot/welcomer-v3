@@ -1,29 +1,37 @@
-import type { Worker } from 'node:worker_threads';
-import { createGatewayManager, createLogger, createRestManager } from '@discordeno/bot';
-import { DISCORD_TOKEN, GATEWAY_INTENTS, REST_AUTHORIZATION, REST_URL, SHARDS_PER_WORKER, TOTAL_SHARDS, TOTAL_WORKERS } from '../config.js';
-import { promiseWithResolvers } from '../util.js';
-import { createWorker } from './worker/createWorker.js';
-import type { ManagerMessage, WorkerMessage } from './worker/types.js';
+import type { Worker } from "node:worker_threads";
+import {
+  createGatewayManager,
+  createRestManager,
+  Intents,
+} from "@discordeno/bot";
+import { gatewayEnv } from "../env.ts";
+import { createLogger } from "../logger.ts";
+import { createWorker } from "./worker/createWorker.ts";
+import type { ManagerMessage, WorkerMessage } from "./worker/types.ts";
 
+const SHARDS_PER_WORKER = 16;
+const TOTAL_WORKERS = 4;
+
+export const env = gatewayEnv.parse(process.env);
+export const intents = Intents.Guilds | Intents.GuildMembers;
 export const workers = new Map<number, Worker>();
-export const logger = createLogger({ name: 'GATEWAY' });
+export const logger = createLogger("gateway", env.LOG_LEVEL);
 
 const restManager = createRestManager({
-  token: DISCORD_TOKEN,
+  token: env.DISCORD_TOKEN,
   proxy: {
-    baseUrl: REST_URL,
-    authorization: REST_AUTHORIZATION,
+    baseUrl: env.REST_PROXY_URL,
+    authorization: env.REST_PROXY_SECRET,
   },
 });
 
 const gatewayBotConfig = await restManager.getGatewayBot();
 
 const gatewayManager = createGatewayManager({
-  token: DISCORD_TOKEN,
-  intents: GATEWAY_INTENTS,
+  token: env.DISCORD_TOKEN,
+  intents,
   connection: gatewayBotConfig,
   shardsPerWorker: SHARDS_PER_WORKER,
-  totalShards: TOTAL_SHARDS,
   totalWorkers: TOTAL_WORKERS,
   resharding: {
     enabled: true,
@@ -33,8 +41,12 @@ const gatewayManager = createGatewayManager({
   },
 });
 
-gatewayManager.resharding.tellWorkerToPrepare = async (workerId, shardId, bucketId) => {
-  logger.info(`Tell worker to prepare, workerId: ${workerId}, shardId: ${shardId}, bucketId: ${bucketId}`);
+gatewayManager.resharding.tellWorkerToPrepare = async (
+  workerId,
+  shardId,
+  bucketId,
+) => {
+  logger.info({ workerId, shardId, bucketId }, "Tell worker to prepare");
 
   let worker = workers.get(workerId);
   if (!worker) {
@@ -43,84 +55,64 @@ gatewayManager.resharding.tellWorkerToPrepare = async (workerId, shardId, bucket
   }
 
   worker.postMessage({
-    type: 'PrepareShard',
+    type: "PrepareShard",
     shardId,
     totalShards: gatewayManager.totalShards,
   } satisfies WorkerMessage);
 
-  const { promise, resolve } = promiseWithResolvers<void>();
+  const { promise, resolve } = Promise.withResolvers<undefined>();
 
   const waitForShardPrepared = (message: ManagerMessage) => {
-    if (message.type === 'ShardPrepared' && message.shardId === shardId) {
-      resolve();
+    if (message.type === "ShardPrepared" && message.shardId === shardId) {
+      resolve(undefined);
     }
   };
 
-  worker.on('message', waitForShardPrepared);
+  worker.on("message", waitForShardPrepared);
 
   await promise;
 
-  worker.off('message', waitForShardPrepared);
+  worker.off("message", waitForShardPrepared);
 };
 
-gatewayManager.resharding.onReshardingSwitch = async () => {
-  logger.info('Resharding switch triggered, telling workers to switch the shards');
+gatewayManager.resharding.onReshardingSwitch = () => {
+  logger.info(
+    "Resharding switch triggered, telling workers to switch the shards",
+  );
 
   for (const worker of workers.values()) {
     worker.postMessage({
-      type: 'SwitchShards',
+      type: "SwitchShards",
     } satisfies WorkerMessage);
   }
+
+  return Promise.resolve();
 };
 
 gatewayManager.tellWorkerToIdentify = async (workerId, shardId, bucketId) => {
-  logger.info(`Tell worker to identify, workerId: ${workerId}, shardId: ${shardId}, bucketId: ${bucketId}`);
+  logger.info({ workerId, shardId, bucketId }, "Tell worker to identify");
 
   const worker = workers.get(workerId) ?? createWorker(workerId);
   workers.set(workerId, worker);
 
   worker.postMessage({
-    type: 'IdentifyShard',
+    type: "IdentifyShard",
     shardId,
   } satisfies WorkerMessage);
 
-  const { promise, resolve } = promiseWithResolvers<void>();
+  const { promise, resolve } = Promise.withResolvers<undefined>();
 
   const waitForShardIdentified = (message: ManagerMessage) => {
-    if (message.type === 'ShardIdentified' && message.shardId === shardId) {
-      resolve();
+    if (message.type === "ShardIdentified" && message.shardId === shardId) {
+      resolve(undefined);
     }
   };
 
-  worker.on('message', waitForShardIdentified);
+  worker.on("message", waitForShardIdentified);
 
   await promise;
 
-  worker.off('message', waitForShardIdentified);
-};
-
-gatewayManager.sendPayload = async (shardId, payload) => {
-  const workerId = gatewayManager.calculateWorkerId(shardId);
-  const worker = workers.get(workerId);
-
-  if (!worker) return;
-
-  worker.postMessage({
-    type: 'ShardPayload',
-    shardId,
-    payload,
-  } satisfies WorkerMessage);
-};
-
-gatewayManager.editBotStatus = async (payload) => {
-  const workersArray = Array.from(workers.values());
-
-  for (const worker of workersArray) {
-    worker.postMessage({
-      type: 'EditShardsPresence',
-      payload,
-    } satisfies WorkerMessage);
-  }
+  worker.off("message", waitForShardIdentified);
 };
 
 export default gatewayManager;

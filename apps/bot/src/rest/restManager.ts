@@ -1,13 +1,14 @@
-import { createLogger, createRestManager } from '@discordeno/bot';
-import { DISCORD_TOKEN } from '../config.js';
-import { setupRestAnalyticsHooks } from './influx.js';
+import { createRestManager } from "@discordeno/bot";
+import { restEnv } from "../env.ts";
+import { createLogger } from "../logger.ts";
+
+export const env = restEnv.parse(process.env);
 
 const manager = createRestManager({
-  token: DISCORD_TOKEN,
+  token: env.DISCORD_TOKEN,
+  applicationId: env.DISCORD_CLIENT_ID,
 });
 
-export const logger = createLogger({ name: 'REST' });
-
-setupRestAnalyticsHooks(manager, logger);
+export const logger = createLogger("rest", env.LOG_LEVEL);
 
 export default manager;
