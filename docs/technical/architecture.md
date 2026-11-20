@@ -210,7 +210,7 @@ sequenceDiagram
 
 ### 6.3 Status page (R-PUB-4 to R-PUB-9)
 
-The gateway writes, every 30 seconds, one row per shard: state, latency, server count, last update. The status page reads those rows; a row older than 1 minute shows the shard offline. The shard of a server is computed with Discord's formula `shard_id = (guild_id >> 22) % num_shards` ([Discord, Sharding](https://docs.discord.com/developers/events/gateway#sharding)) **[verify at build]**.
+The gateway writes, every 30 seconds, one row per shard: state, latency, server count, last update. The status page reads those rows; a row older than 1 minute shows the shard offline. The shard of a server is computed with Discord's formula `shard_id = (guild_id >> 22) % num_shards` ([Discord, Sharding](https://docs.discord.com/developers/events/gateway#sharding)); confirmed in slice 1 (D16).
 
 ## 7. Deployment view
 

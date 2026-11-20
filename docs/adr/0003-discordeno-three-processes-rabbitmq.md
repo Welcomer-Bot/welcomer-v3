@@ -29,4 +29,4 @@ Chosen option: "discordeno, three processes, RabbitMQ between gateway and bot". 
 
 - [discordeno, architecture](https://discordeno.js.org/docs/architecture): "three main components/processes: Gateway, Bot, and Rest".
 - [discordeno, Big Bot step 3](https://discordeno.js.org/docs/bigbot/step-3-gateway): restarting the bot without a queue can lose events.
-- Sources read 2026-11-19 for the earlier attempt; re-check at build.
+- Built in slice 1 from discordeno's `examples/bigbot` at commit `a6a17cc66601089ac3ed8599055b49a597d127d6` (2026-11-18), with `@discordeno/bot` `22.0.0-beta.2` ([slice 1 plan](../plans/1-bot-online.md), D1). Checked locally: an event published while the bot is stopped is handled when it starts again.

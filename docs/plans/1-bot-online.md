@@ -585,6 +585,41 @@ CI cannot run these steps. They need the owner's development application ([devel
 
 Report each result in the pull request, and write the [verify at build] results in Task 10.
 
+## Build results
+
+Built on branch `feat/slice-1-bot-online` (the coordinator's name for this slice's branch, in place of `feat/bot-online`). Template commit: `a6a17cc66601089ac3ed8599055b49a597d127d6`.
+
+[verify at build] items:
+
+- D1: the template type-checks against `@discordeno/bot` `22.0.0-beta.2`; no fallback to the `next` pin.
+- D2.1: `node` loads `@repo/database` and `@repo/domain` through the `node_modules` symlinks (the bot starts and waits on the queue).
+- D2.2: the Prisma-generated client loads under type stripping (`yarn db:seed` runs `node prisma/seed.ts` twice, exit 0); no `tsx` fallback.
+- D2.3: `new Worker(".../worker.ts")` runs under type stripping; run directly, `worker.ts` stops on the `parentPort` assertion.
+- Task 4: the shard passes the raw snake_case packet: `events.message?: (shard, payload: DiscordGatewayPayload)` and `this.events.message?.(this, packet)` (`@discordeno/gateway` 22.0.0-beta.2, `dist/types.d.ts` and `dist/Shard.js`).
+- Task 4: `member.guildId` is filled when `desiredProperties.member.guildId` is set and the handler passes it (`transformers/member.js`; `GUILD_MEMBER_ADD` passes `guildId`). Its type stays optional, so the handler guards it.
+- Task 6: Prisma binds a JavaScript string array as `text[]` in `$executeRaw`: the R-SRV-5 READY test passes against PostgreSQL.
+- Task 8: `interaction.edit` without a message id, after `defer`, calls `editOriginalInteractionResponse` (`transformers/interaction.js`).
+- Task 8: the `/help` Variables field is 738 characters, under the 1,024 limit the plan cites (Discord's embed limits page was not re-fetched).
+- Task 9: the Playwright clock drives the page's `setInterval`: the R-PUB-9 test passes in the 3 browsers and fails when `<AutoRefresh />` is removed.
+- D11: `yarn build` with an unreachable `DATABASE_URL` succeeds; `/status` is a partial prerender.
+- D16: the four test snowflakes match `(id >> 22) % 2` as the plan lists.
+
+Fixes and deviations, each at its root:
+
+- Task 1 not applied: editing `allow-ghsas` was refused by the agent's permission check (an advisory allowlist is an oversight change). The owner applies Task 1 by hand; ci-cd.md marks it as planned.
+- Task 2: `packages/database/tsconfig.json` includes `prisma`, so typed lint finds `prisma/seed.ts` (the lint error names this fix: "Consider either including it in the tsconfig.json").
+- Task 4: each process parses its environment in the template module that first needs it (`gatewayManager.ts`, `restManager.ts`, `bot.ts`), not in `index.ts`: ES modules evaluate imports first, and those modules build their clients at load time.
+- Task 4: `apps/bot/tsconfig.json` sets `lib` and `target` to `es2024`, for `Promise.withResolvers` (TypeScript: ES2024 library). Node 26 runs ES2024.
+- Task 4: the template's option-parsing types and autocomplete are dropped: no slice-1 command has options, and with Welcomer's `desiredProperties` they resolve to empty types that strict lint refuses. Slice 3 adds what `/test` needs.
+- Task 4: `rest/index.ts` keeps `req.raw.aborted` with a line-level lint exception. Fastify's guide says "`destroyed` is not a suitable replacement" and keeps `aborted`; Node marks it deprecated. The framework guide wins (CLAUDE.md).
+- Task 4: the checks run with `--env-file=apps/bot/.env.example`, not by copying it over `.env`, which holds the owner's real values.
+- Task 5: the template reconnected on both `error` and `close`, and amqplib emits `close` after `error` (`lib/connection.js`, `closeWithError` and `onSocketError` then `toClosed`), so each failure doubled the reconnect loops. Both sides now reconnect on `close` only. The check used RabbitMQ's management HTTP API in place of the UI.
+- Task 6: the READY test's server D joins at a time after the READY clock (T3), not at the same instant, to match "joined after".
+- Task 9: `shardOf` uses `BigInt(22)`, not `22n`: the dashboard keeps create-next-app's `ES2017` target, which refuses BigInt literals.
+- Task 9: the page uses plain HTML elements; no HeroUI component was needed in this slice.
+
+Still open: Task 12 (owner live check), and the `yarn dev` start order between rest and gateway.
+
 ## Done when
 
 - [ ] Every rule of slice 1 is implemented, with tests written first that name the rule. They fail without their code (definition of done 1):
