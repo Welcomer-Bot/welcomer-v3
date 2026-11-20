@@ -30,8 +30,9 @@ export const overallState = (
   return online === shards.length ? "operational" : "partial-outage";
 };
 
+// BigInt() instead of a literal: the dashboard keeps create-next-app's ES2017 target.
 export const shardOf = (serverId: string, shardCount: number): number =>
-  Number((BigInt(serverId) >> 22n) % BigInt(shardCount));
+  Number((BigInt(serverId) >> BigInt(22)) % BigInt(shardCount));
 
 export const parseServerId = (input: string): string => {
   const id = input.trim();

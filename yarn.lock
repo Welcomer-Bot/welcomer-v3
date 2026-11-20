@@ -3821,6 +3821,7 @@ __metadata:
     "@heroui/styles": "npm:^3.2.7"
     "@playwright/test": "npm:^1.65.1"
     "@repo/database": "workspace:*"
+    "@repo/domain": "workspace:*"
     "@repo/eslint-config": "workspace:*"
     "@tailwindcss/turbopack": "npm:4.3.3"
     "@testing-library/dom": "npm:^10.4.2"

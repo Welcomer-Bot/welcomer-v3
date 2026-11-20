@@ -15,6 +15,7 @@
     "@heroui/react": "^3.2.7",
     "@heroui/styles": "^3.2.7",
     "@repo/database": "workspace:*",
+    "@repo/domain": "workspace:*",
     "better-auth": "1.7.26",
     "next": "16.4.6",
     "react": "19.3.0",
