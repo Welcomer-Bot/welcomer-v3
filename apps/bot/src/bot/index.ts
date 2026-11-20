@@ -1,6 +1,7 @@
 import type { DiscordGatewayPayload } from "@discordeno/bot";
 import { connect as connectAmqp, type ConsumeMessage } from "amqplib";
 import { bot, env, logger } from "./bot.ts";
+import { dispatchAndWait } from "./dispatch.ts";
 import { registerGuildEvents } from "./events/guilds.ts";
 import { registerInteractionEvents } from "./events/interactions/create.ts";
 import { registerMemberEvents } from "./events/members.ts";
@@ -27,16 +28,32 @@ registerInteractionEvents(
 
 await connectToRabbitMQ();
 
-function handleGatewayEvent(
+async function handleGatewayEvent(
   payload: DiscordGatewayPayload,
   shardId: number,
-): void {
-  bot.events.raw?.(payload, shardId);
-
+): Promise<void> {
   // If we don't have the event type we don't process it further
-  if (!payload.t) return;
+  const event = payload.t;
+  if (!event) return;
 
-  bot.handlers[payload.t](bot, payload, shardId);
+  const results = await dispatchAndWait(() => {
+    bot.events.raw?.(payload, shardId);
+    bot.handlers[event](bot, payload, shardId);
+  });
+
+  for (const result of results) {
+    if (result.status === "rejected") {
+      logger.error(
+        { err: result.reason, shardId, serverId: serverIdOf(payload), event },
+        "Event handling failed",
+      );
+    }
+  }
+}
+
+function serverIdOf({ t, d }: DiscordGatewayPayload): string | undefined {
+  const data = d as { guild_id?: string; id?: string } | null;
+  return data?.guild_id ?? (t?.startsWith("GUILD_") ? data?.id : undefined);
 }
 
 async function connectToRabbitMQ(): Promise<void> {
@@ -72,7 +89,7 @@ async function connectToRabbitMQ(): Promise<void> {
 
   if (!channel) return;
 
-  const handleMessage = (message: ConsumeMessage | null) => {
+  const handleMessage = async (message: ConsumeMessage | null) => {
     if (!message) return;
 
     try {
@@ -80,7 +97,7 @@ async function connectToRabbitMQ(): Promise<void> {
         message.content.toString(),
       ) as GatewayEvent;
 
-      handleGatewayEvent(messageBody.payload, messageBody.shardId);
+      await handleGatewayEvent(messageBody.payload, messageBody.shardId);
     } catch (error) {
       logger.error(
         { err: error },
@@ -93,7 +110,9 @@ async function connectToRabbitMQ(): Promise<void> {
 
   await channel.assertQueue(QUEUE, { durable: true });
   await channel.prefetch(100);
-  await channel.consume(QUEUE, handleMessage, { noAck: false });
+  await channel.consume(QUEUE, (message) => void handleMessage(message), {
+    noAck: false,
+  });
 }
 
 interface GatewayEvent {
