@@ -24,7 +24,7 @@ Quality gate on every change, then the Docker images of each app on `main`. Runs
 | `e2e`       | Playwright against the built dashboard                                 | any failing journey  |
 | `build`     | production build of each affected app and image build without push     | build error          |
 
-A shared composite action does checkout, Node setup with the Yarn cache, and `yarn install --immutable`.
+Each job checks out the repository first, then calls a shared composite action for Node setup with the Yarn cache and `yarn install --immutable`. The action cannot do the checkout itself: "You must check out your repository before using the action" ([GitHub, workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)).
 
 Also on every pull request:
 
