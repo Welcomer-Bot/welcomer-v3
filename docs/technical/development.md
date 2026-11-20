@@ -4,13 +4,27 @@ How to work on Welcomer locally, and the conventions every change follows. Pipel
 
 ## Tools
 
-| Tool    | Version                                                                                       |
-| ------- | --------------------------------------------------------------------------------------------- |
-| Node.js | the Active LTS when the repository is created: 26 on 2026-11-20 ([Node.js release schedule](https://github.com/nodejs/release#release-schedule): "Production applications should only use Active LTS or Maintenance LTS releases"), pinned in `.nvmrc` and `engines` |
-| Yarn    | latest stable, through Corepack and the `packageManager` field                                 |
-| Docker  | Engine with the Compose plugin, for PostgreSQL and RabbitMQ                                   |
+| Tool        | Version                                                                                                                                                                                                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node.js     | the Active LTS when the repository is created: 26 on 2026-11-20 ([Node.js release schedule](https://github.com/nodejs/release#release-schedule): "Production applications should only use Active LTS or Maintenance LTS releases"), pinned in `.nvmrc` and `engines`; 26.13.1 in slice 0 |
+| Corepack    | 0.36.0. Node 25 and later no longer ship it: `npm install -g corepack@0.36.0 && corepack enable` ([Yarn, install](https://yarnpkg.com/getting-started/install): "Install Corepack… `npm install -g corepack`")                                                                           |
+| Yarn        | latest stable, through Corepack and the `packageManager` field; 4.18.1 in slice 0                                                                                                                                                                                                        |
+| Docker      | Engine with the Compose plugin, for PostgreSQL and RabbitMQ; images `node:26.13.1-slim`, `postgres:17-alpine`, `rabbitmq:4.4-management`                                                                                                                                                 |
+| Turborepo   | 2.11.13                                                                                                                                                                                                                                                                                  |
+| Next.js     | 16.4.6, React 19.3.0 (the `create-next-app` pins)                                                                                                                                                                                                                                        |
+| TypeScript  | 5.9.3: typescript-eslint 8.73.0 accepts `>=4.8.4 <6.1.0`                                                                                                                                                                                                                                 |
+| ESLint      | 9.39.5, the major `create-next-app` writes; typescript-eslint 8.73.0, eslint-config-next 16.4.6                                                                                                                                                                                          |
+| Prettier    | 3.10.1, defaults                                                                                                                                                                                                                                                                         |
+| HeroUI      | @heroui/react and @heroui/styles 3.2.7, Tailwind CSS 4.3.3                                                                                                                                                                                                                               |
+| Prisma      | prisma, @prisma/client, @prisma/adapter-pg 7.10.1                                                                                                                                                                                                                                        |
+| Better Auth | better-auth 1.7.26 and its CLI `auth` 1.7.26 (1.7.27 was still in Yarn's 24-hour quarantine on 2026-11-20)                                                                                                                                                                               |
+| Zod         | 4.6.7                                                                                                                                                                                                                                                                                    |
+| Vitest      | 5.1.1 with `vite` 8, `@vitejs/plugin-react` 6.3.0, jsdom 31.0.1, Testing Library                                                                                                                                                                                                         |
+| Playwright  | @playwright/test 1.65.1                                                                                                                                                                                                                                                                  |
 
-Yarn uses `nodeLinker: node-modules`. Yarn's default is `pnp` ([Yarn, nodeLinker](https://yarnpkg.com/configuration/yarnrc#nodeLinker)); neither the Turborepo nor the Next.js docs mention Plug'n'Play, so the classic layout is kept for tool compatibility **[verify at build]**.
+The lockfile pins every other version. Yarn 4 refuses versions published less than 24 hours ago by default ([Yarn, `npmMinimalAgeGate`](https://yarnpkg.com/configuration/yarnrc#npmMinimalAgeGate), default 1440 minutes): the default is kept, so a fresh release installs a day later. create-turbo writes `devEngines.packageManager` with the Yarn found on the machine, and Corepack enforces it ([Corepack, `devEngines.packageManager`](https://github.com/nodejs/corepack#devenginespackagemanager)): it holds the Yarn version above.
+
+Yarn uses `nodeLinker: node-modules`. Yarn's default is `pnp` ([Yarn, nodeLinker](https://yarnpkg.com/configuration/yarnrc#nodeLinker)); neither the Turborepo nor the Next.js docs mention Plug'n'Play, so the classic layout is kept for tool compatibility. Checked in slice 0: with this linker, Node runs the bot's TypeScript without a loader, Next.js standalone output copies its `node_modules`, and the Docker builds install the `turbo prune` output with `yarn install --immutable`. Plug'n'Play was not tried.
 
 ## Local setup
 
@@ -24,22 +38,21 @@ Yarn uses `nodeLinker: node-modules`. Yarn's default is `pnp` ([Yarn, nodeLinker
 
 Checked at start by a Zod schema in each app ([architecture, 8.1](./architecture.md#81-rules-for-the-dashboard)).
 
-| Variable                | Used by                    | What                                                       |
-| ----------------------- | -------------------------- | ---------------------------------------------------------- |
-| `DATABASE_URL`          | gateway, bot, dashboard, migrations | Supabase session pooler URL                       |
-| `RABBITMQ_URL`          | gateway, bot               | queue                                                      |
-| `DISCORD_TOKEN`         | gateway, rest, register-commands | bot token                                            |
-| `DISCORD_CLIENT_ID`     | rest, dashboard, register-commands | application identifier                             |
-| `DISCORD_CLIENT_SECRET` | dashboard                  | OAuth2 secret                                              |
-| `REST_PROXY_URL`        | bot, dashboard             | internal address of `rest`                                 |
-| `REST_PROXY_SECRET`     | rest, bot, dashboard       | shared secret header                                       |
-| `BETTER_AUTH_SECRET`    | dashboard                  | signing secret                                             |
-| `BETTER_AUTH_URL`       | dashboard                  | public address, `https://welcomer.app`                     |
-| `ADMIN_DISCORD_IDS`     | dashboard                  | admins (R-ADM-2)                                           |
-| `SUPPORT_SERVER_URL`    | bot, dashboard             | support server link (R-PUB-11)                             |
-| `LOG_LEVEL`             | all                        | `info` in production, `debug` locally                      |
-| `DISCORD_API_URL`       | dashboard                  | Discord API base for user calls; default `https://discord.com/api/v10`, a mock in end-to-end tests |
-
+| Variable                | Used by                             | What                                                                                               |
+| ----------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | gateway, bot, dashboard, migrations | Supabase session pooler URL                                                                        |
+| `RABBITMQ_URL`          | gateway, bot                        | queue                                                                                              |
+| `DISCORD_TOKEN`         | gateway, rest, register-commands    | bot token                                                                                          |
+| `DISCORD_CLIENT_ID`     | rest, dashboard, register-commands  | application identifier                                                                             |
+| `DISCORD_CLIENT_SECRET` | dashboard                           | OAuth2 secret                                                                                      |
+| `REST_PROXY_URL`        | bot, dashboard                      | internal address of `rest`                                                                         |
+| `REST_PROXY_SECRET`     | rest, bot, dashboard                | shared secret header                                                                               |
+| `BETTER_AUTH_SECRET`    | dashboard                           | signing secret                                                                                     |
+| `BETTER_AUTH_URL`       | dashboard                           | public address, `https://welcomer.app`                                                             |
+| `ADMIN_DISCORD_IDS`     | dashboard                           | admins (R-ADM-2)                                                                                   |
+| `SUPPORT_SERVER_URL`    | bot, dashboard                      | support server link (R-PUB-11)                                                                     |
+| `LOG_LEVEL`             | all                                 | `info` in production, `debug` locally                                                              |
+| `DISCORD_API_URL`       | dashboard                           | Discord API base for user calls; default `https://discord.com/api/v10`, a mock in end-to-end tests |
 
 ## Architecture rules
 
@@ -67,6 +80,8 @@ Strict, checked in review:
 
 ## Tests locally
 
+- One test file: `yarn test --filter=<workspace> -- <path>`, path relative to the workspace. Turborepo passes the arguments after `--` to every task of the run ([Turborepo, run](https://turborepo.dev/docs/reference/run)), so without `--filter` the other workspaces fail with "No test files found".
+- WebKit needs system libraries: `sudo yarn workspace dashboard playwright install-deps` once per machine; CI installs them with `playwright install --with-deps`.
 - Vitest: Discord REST is mocked with MSW in Node ([MSW](https://mswjs.io/docs)).
 - End-to-end: the built dashboard calls a small mock server, set through `DISCORD_API_URL` and `REST_PROXY_URL`, since MSW in the test process cannot reach the dashboard's own process.
 - End-to-end sign-in is stubbed: the test creates a user and a session in the database and sets the session cookie, so no Discord account is needed **[verify at build: Better Auth test helpers]**.

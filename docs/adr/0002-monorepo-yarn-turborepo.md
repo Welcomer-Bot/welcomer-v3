@@ -30,3 +30,5 @@ Chosen option: "One monorepo, Yarn workspaces + Turborepo". One monorepo with Ya
 - [Turborepo, constructing CI](https://turborepo.dev/docs/crafting-your-repository/constructing-ci): `turbo run build --affected`.
 - [Turborepo, Docker](https://turborepo.dev/docs/guides/tools/docker): `turbo prune --docker`.
 - [Yarn, workspaces](https://yarnpkg.com/features/workspaces).
+- Yarn runs with `nodeLinker: node-modules` ([Yarn, linkers](https://yarnpkg.com/features/linkers): "Perfect compatibility with the whole ecosystem"); checked in slice 0 with Node type stripping, Next.js standalone output and `turbo prune --docker` ([development, tools](../technical/development.md#tools)).
+- A workspace script only sees the binaries of the dependencies its `package.json` declares, so each linted package declares `eslint` and `typescript`, as create-turbo's example packages do.

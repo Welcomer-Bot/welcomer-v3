@@ -1,0 +1,6 @@
+# Agent skills vendored by prisma init, kept as published (hashes in skills-lock.json)
+**/.agents/
+
+# Playwright output, ignored by apps/dashboard/.gitignore, which Prettier does not read
+**/playwright-report/
+**/test-results/

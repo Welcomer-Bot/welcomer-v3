@@ -8,12 +8,13 @@ Every answer of a command is seen only by the member who typed it.
 
 - **R-CMD-1** `/help` gives help on the bot. Sections: a setup guide, the list of variables. It links to the dashboard and to the support server. More sections may be added when needed.
 
-  | Section     | Text                                                                                                                       |
-  | ----------- | -------------------------------------------------------------------------------------------------------------------------- |
-  | Title       | Welcomer help                                                                                                              |
-  | Setup       | 1. Open the dashboard and sign in with Discord. 2. Pick this server. 3. Create a welcome or goodbye configuration: channel, text, embeds. 4. Validate it, then activate it. 5. Type `/test` to see it. |
-  | Variables   | the list of [variables](./messages.md#variables), each with what it shows                                                  |
-  | Links       | Dashboard · Support server                                                                                                 |
+  | Section   | Text                                                                                                                                                                                                   |
+  | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+  | Title     | Welcomer help                                                                                                                                                                                          |
+  | Setup     | 1. Open the dashboard and sign in with Discord. 2. Pick this server. 3. Create a welcome or goodbye configuration: channel, text, embeds. 4. Validate it, then activate it. 5. Type `/test` to see it. |
+  | Variables | the list of [variables](./messages.md#variables), each with what it shows                                                                                                                              |
+  | Links     | Dashboard · Support server                                                                                                                                                                             |
+
 - **R-CMD-2** `/status` gives the state of the bot: connected or not, response time (the average of its Discord connections), running since when and memory used (both for the part of the bot that sends the messages), and which Discord connection serves this server.
 - **R-CMD-3** `/test` lets a server manager test the active configuration of a message type (welcome or goodbye), in its validated version, in conditions close to a real arrival or departure, with the manager as the member. The manager chooses the message type; it is required. Only members who can manage the server can use `/test`, and only in a server. Channel variables take the configured channel.
 - **R-CMD-4** Only the manager who ran `/test` sees the test message, in the channel where they typed it.

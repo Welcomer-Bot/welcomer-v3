@@ -1,0 +1,24 @@
+name: Setup
+description: Node from .nvmrc, Corepack, Yarn cache and an immutable install. Run after actions/checkout.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: .nvmrc
+    - name: Install Corepack
+      shell: bash
+      run: npm install -g corepack@0.36.0 && corepack enable
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      shell: bash
+      run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache@v6
+      with:
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+    - name: Install dependencies
+      shell: bash
+      run: yarn install --immutable

@@ -1,10 +1,10 @@
 # Welcomer documentation
 
-| Part | Start here | Holds |
-| ---- | ---------- | ----- |
-| Business | [requirements.md](./requirements.md) | purpose, actors, rules per domain, journeys, screens, domain model, processes |
+| Part      | Start here                                               | Holds                                                                                                                                                                                                                                                                   |
+| --------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Business  | [requirements.md](./requirements.md)                     | purpose, actors, rules per domain, journeys, screens, domain model, processes                                                                                                                                                                                           |
 | Technical | [technical/architecture.md](./technical/architecture.md) | architecture (arc42, C4), [data model](./technical/data-model.md), [contracts](./technical/contracts.md), [operations](./technical/operations.md), [CI](./technical/ci-cd.md), [test strategy](./technical/test-strategy.md), [development](./technical/development.md) |
-| Plan | [roadmap.md](./roadmap.md) | vertical slices and definition of done |
-| Decisions | [adr/README.md](./adr/README.md) | architecture decision records (MADR 4) |
+| Plan      | [roadmap.md](./roadmap.md)                               | vertical slices and definition of done                                                                                                                                                                                                                                  |
+| Decisions | [adr/README.md](./adr/README.md)                         | architecture decision records (MADR 4)                                                                                                                                                                                                                                  |
 
 Business documents use domain words only. Technical documents implement them and cite the rules they implement (R-…).

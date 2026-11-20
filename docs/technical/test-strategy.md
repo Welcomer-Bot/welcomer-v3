@@ -12,13 +12,13 @@ Few tests, on the business rules of [`../business/`](../business/). Tests cover 
 
 ## Levels
 
-As the Next.js testing guides recommend: business logic first, Vitest for synchronous components, end-to-end for async Server Components, which Vitest does not support (Next.js, Vitest guide, in `node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md` once installed) **[verify at build]**.
+As the Next.js testing guides recommend: business logic first, Vitest for synchronous components, end-to-end for async Server Components, which Vitest does not support (Next.js, Vitest guide, `node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md`: "Vitest currently does not support them… we recommend using **E2E tests** for `async` components"; checked in slice 0, it matches the online guide). Its manual setup is kept, with two additions: Vitest 5 needs `vite` installed explicitly under Yarn ([Vitest, migration](https://vitest.dev/guide/migration): "It is now a required peer dependency"), and `e2e/**` is added to Vitest's default `exclude`, since Vitest would otherwise collect the Playwright specs. The test script is `vitest run`, so the run ends in CI. The Playwright guide (`playwright.md`) installs with `yarn create playwright` and recommends "running your tests against your production code".
 
-| Level      | Tool                           | What                                                                                  |
-| ---------- | ------------------------------ | ------------------------------------------------------------------------------------- |
+| Level      | Tool                           | What                                                                                                                                                                                                               |
+| ---------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Business   | Vitest                         | rules in `packages/domain` and `packages/card`; services and repositories against a real PostgreSQL where a rule depends on the database (activation swap, limit of 5, optimistic locking, event plus daily total) |
-| Component  | Vitest + React Testing Library | synchronous editor components that hold logic, with user-event and role queries       |
-| End-to-end | Playwright                     | a few journeys through the pages: sign in (stubbed), edit and validate, statistics    |
+| Component  | Vitest + React Testing Library | synchronous editor components that hold logic, with user-event and role queries                                                                                                                                    |
+| End-to-end | Playwright                     | a few journeys through the pages: sign in (stubbed), edit and validate, statistics                                                                                                                                 |
 
 ## Not tested
 

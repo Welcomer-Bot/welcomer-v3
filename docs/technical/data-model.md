@@ -6,90 +6,90 @@ Physical model of the [domain model](../business/domain-model.md). Database: Pos
 
 ### server
 
-| Column        | Type        | Notes                                   |
-| ------------- | ----------- | --------------------------------------- |
-| id            | text, PK    | Discord guild identifier (snowflake)    |
-| name          | text        | kept up to date on guild update         |
-| member_count  | integer     | R-SRV-4                                 |
+| Column        | Type           | Notes                                                                                |
+| ------------- | -------------- | ------------------------------------------------------------------------------------ |
+| id            | text, PK       | Discord guild identifier (snowflake)                                                 |
+| name          | text           | kept up to date on guild update                                                      |
+| member_count  | integer        | R-SRV-4                                                                              |
 | icon          | text, nullable | Discord icon hash, kept up to date on guild create and update; shown on server pages |
-| bot_joined_at | timestamptz | R-ADM-3                                 |
+| bot_joined_at | timestamptz    | R-ADM-3                                                                              |
 
 Row created on guild create, deleted on guild delete when the guild is not merely unavailable (R-SRV-5). Deleting it cascades to `configuration`, `active_configuration`, `image`. Statistics have no foreign key to it (R-SRV-6).
 
 ### configuration
 
-| Column       | Type                             | Notes                                                           |
-| ------------ | -------------------------------- | --------------------------------------------------------------- |
-| id           | uuid, PK                         |                                                                 |
-| server_id    | text, FK server, on delete cascade |                                                               |
-| message_type | enum `welcome`, `goodbye`        | R-CFG-1                                                         |
-| name         | varchar(50)                      | unique with (server_id, message_type) — R-CFG-7                 |
-| channel_id   | text                             | Discord channel identifier; not a foreign key (R-CFG-16)        |
-| message      | jsonb                            | text and embeds, validated by `packages/domain` on every write and read |
-| image_id     | uuid, FK image, nullable         | R-IMG-3: deleting an image clears `image_id` and `image_place` of its configurations in the same transaction |
-| image_place  | enum `attached`, `first_embed`, nullable | required when image_id is set — R-IMG-19              |
-| version      | integer, default 1               | optimistic locking — R-EDT-9                                    |
-| created_at   | timestamptz                      | library order — R-CFG-11                                        |
-| updated_at   | timestamptz                      |                                                                 |
+| Column       | Type                                     | Notes                                                                                                        |
+| ------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| id           | uuid, PK                                 |                                                                                                              |
+| server_id    | text, FK server, on delete cascade       |                                                                                                              |
+| message_type | enum `welcome`, `goodbye`                | R-CFG-1                                                                                                      |
+| name         | varchar(50)                              | unique with (server_id, message_type) — R-CFG-7                                                              |
+| channel_id   | text                                     | Discord channel identifier; not a foreign key (R-CFG-16)                                                     |
+| message      | jsonb                                    | text and embeds, validated by `packages/domain` on every write and read                                      |
+| image_id     | uuid, FK image, nullable                 | R-IMG-3: deleting an image clears `image_id` and `image_place` of its configurations in the same transaction |
+| image_place  | enum `attached`, `first_embed`, nullable | required when image_id is set — R-IMG-19                                                                     |
+| version      | integer, default 1                       | optimistic locking — R-EDT-9                                                                                 |
+| created_at   | timestamptz                              | library order — R-CFG-11                                                                                     |
+| updated_at   | timestamptz                              |                                                                                                              |
 
 ### active_configuration
 
-| Column           | Type                                      | Notes                         |
-| ---------------- | ----------------------------------------- | ----------------------------- |
-| server_id        | text, FK server, on delete cascade        | PK with message_type          |
-| message_type     | enum                                      |                               |
+| Column           | Type                                              | Notes                              |
+| ---------------- | ------------------------------------------------- | ---------------------------------- |
+| server_id        | text, FK server, on delete cascade                | PK with message_type               |
+| message_type     | enum                                              |                                    |
 | configuration_id | uuid, FK configuration, unique, on delete cascade | the one active — R-CFG-2, R-CFG-13 |
 
 One row per (server, type) makes "at most one active" a primary key rule. Activating another configuration replaces `configuration_id` in one statement; deleting the active configuration removes the row (R-CFG-15). Chosen over a partial unique index, which Prisma offers only behind a preview feature ([Prisma, indexes](https://www.prisma.io/docs/orm/prisma-schema/data-model/indexes)) **[verify at build]**.
 
 ### image
 
-| Column              | Type                                | Notes                                         |
-| ------------------- | ----------------------------------- | --------------------------------------------- |
-| id                  | uuid, PK                            |                                               |
-| server_id           | text, FK server, on delete cascade  |                                               |
-| name                | varchar(50)                         | unique with server_id — R-IMG-2               |
-| layout              | enum `left`, `center`, `right`      | R-IMG-7                                       |
-| avatar_border_color | char(7)                             | `#RRGGBB` — R-IMG-8                           |
-| background_color    | char(7), nullable                   | at most one of color or url; both empty means the default background — R-IMG-15 |
-| background_url      | text, nullable                      | link only, never the picture — R-IMG-15       |
-| texts               | jsonb                               | member name, title, subtitle with their style, validated by `packages/domain` — R-IMG-10 to R-IMG-14 |
-| version             | integer, default 1                  | R-EDT-9                                       |
-| created_at          | timestamptz                         |                                               |
-| updated_at          | timestamptz                         |                                               |
+| Column              | Type                               | Notes                                                                                                |
+| ------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| id                  | uuid, PK                           |                                                                                                      |
+| server_id           | text, FK server, on delete cascade |                                                                                                      |
+| name                | varchar(50)                        | unique with server_id — R-IMG-2                                                                      |
+| layout              | enum `left`, `center`, `right`     | R-IMG-7                                                                                              |
+| avatar_border_color | char(7)                            | `#RRGGBB` — R-IMG-8                                                                                  |
+| background_color    | char(7), nullable                  | at most one of color or url; both empty means the default background — R-IMG-15                      |
+| background_url      | text, nullable                     | link only, never the picture — R-IMG-15                                                              |
+| texts               | jsonb                              | member name, title, subtitle with their style, validated by `packages/domain` — R-IMG-10 to R-IMG-14 |
+| version             | integer, default 1                 | R-EDT-9                                                                                              |
+| created_at          | timestamptz                        |                                                                                                      |
+| updated_at          | timestamptz                        |                                                                                                      |
 
 ### stat_event
 
-| Column           | Type                                   | Notes                                      |
-| ---------------- | -------------------------------------- | ------------------------------------------ |
-| id               | bigint, generated                      | PK with `occurred_at`: a key on a partitioned table must include the partition key ([PostgreSQL, partitioning](https://www.postgresql.org/docs/current/ddl-partitioning.html#DDL-PARTITIONING-DECLARATIVE-LIMITATIONS)) |
-| server_id        | text                                   | no foreign key                             |
-| kind             | enum `arrival`, `departure`, `send`    | R-STA-2                                    |
-| message_type     | enum, nullable                         | set for `send`                             |
-| configuration_id | uuid, nullable, no foreign key         | set for `send`; survives deletion — R-STA-17 |
-| messages, embeds, images | smallint                       | set for `send` — R-STA-5 to R-STA-7        |
-| occurred_at      | timestamptz                            | partition key                              |
+| Column                   | Type                                | Notes                                                                                                                                                                                                                   |
+| ------------------------ | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id                       | bigint, generated                   | PK with `occurred_at`: a key on a partitioned table must include the partition key ([PostgreSQL, partitioning](https://www.postgresql.org/docs/current/ddl-partitioning.html#DDL-PARTITIONING-DECLARATIVE-LIMITATIONS)) |
+| server_id                | text                                | no foreign key                                                                                                                                                                                                          |
+| kind                     | enum `arrival`, `departure`, `send` | R-STA-2                                                                                                                                                                                                                 |
+| message_type             | enum, nullable                      | set for `send`                                                                                                                                                                                                          |
+| configuration_id         | uuid, nullable, no foreign key      | set for `send`; survives deletion — R-STA-17                                                                                                                                                                            |
+| messages, embeds, images | smallint                            | set for `send` — R-STA-5 to R-STA-7                                                                                                                                                                                     |
+| occurred_at              | timestamptz                         | partition key                                                                                                                                                                                                           |
 
 Partitioned by range on `occurred_at`, one partition per UTC day. A daily job creates the partitions of the next days and drops partitions older than 7 days (R-STA-3), see [scheduled jobs](#scheduled-jobs); dropping a partition is the bulk delete PostgreSQL recommends ([PostgreSQL, partitioning](https://www.postgresql.org/docs/current/ddl-partitioning.html)). Prisma cannot declare partitions: the partitioning SQL lives in a hand-edited migration ([ADR-0008](../adr/0008-statistics-events-and-daily-totals.md)).
 
 ### daily_server_total
 
-| Column     | Type     | Notes                         |
-| ---------- | -------- | ----------------------------- |
-| day        | date     | UTC — R-STA-10; PK (server_id, day) |
-| server_id  | text     | no foreign key                |
-| arrivals   | integer  |                               |
-| departures | integer  |                               |
+| Column     | Type    | Notes                               |
+| ---------- | ------- | ----------------------------------- |
+| day        | date    | UTC — R-STA-10; PK (server_id, day) |
+| server_id  | text    | no foreign key                      |
+| arrivals   | integer |                                     |
+| departures | integer |                                     |
 
 ### daily_send_total
 
-| Column           | Type    | Notes                                                    |
-| ---------------- | ------- | -------------------------------------------------------- |
-| day              | date    | PK (server_id, day, message_type, configuration_id)      |
-| server_id        | text    | no foreign key                                           |
-| message_type     | enum    |                                                          |
-| configuration_id | uuid    | no foreign key — R-STA-17                                |
-| messages, embeds, images | integer |                                                  |
+| Column                   | Type    | Notes                                               |
+| ------------------------ | ------- | --------------------------------------------------- |
+| day                      | date    | PK (server_id, day, message_type, configuration_id) |
+| server_id                | text    | no foreign key                                      |
+| message_type             | enum    |                                                     |
+| configuration_id         | uuid    | no foreign key — R-STA-17                           |
+| messages, embeds, images | integer |                                                     |
 
 Every read is one server over a range of days, so keys start with `server_id`. `stat_event` has an index on (`server_id`, `occurred_at`).
 
@@ -97,13 +97,13 @@ Each event insert and the matching daily total upsert (`insert … on conflict d
 
 ### shard_status
 
-| Column       | Type        | Notes                                   |
-| ------------ | ----------- | --------------------------------------- |
-| shard_id     | integer, PK |                                         |
-| state        | enum `online`, `connecting`, `offline` |              |
-| latency_ms   | integer, nullable |                                   |
-| server_count | integer     | counted by the gateway: guilds of `READY`, plus guild create, minus guild delete |
-| updated_at   | timestamptz | older than 1 minute shows offline — R-PUB-7 |
+| Column       | Type                                   | Notes                                                                            |
+| ------------ | -------------------------------------- | -------------------------------------------------------------------------------- |
+| shard_id     | integer, PK                            |                                                                                  |
+| state        | enum `online`, `connecting`, `offline` |                                                                                  |
+| latency_ms   | integer, nullable                      |                                                                                  |
+| server_count | integer                                | counted by the gateway: guilds of `READY`, plus guild create, minus guild delete |
+| updated_at   | timestamptz                            | older than 1 minute shows offline — R-PUB-7                                      |
 
 At start the gateway deletes the rows with `shard_id` at or above the new shard count. Plus one row of `bot_status` (`started_at`, `shard_count`) for R-PUB-4 and the shard formula.
 
@@ -127,10 +127,10 @@ Added by hand in a migration created with `prisma migrate dev --create-only` ([P
 
 Run by the bot process: once at start, then every day at 00:05 UTC. A failure is logged at level error.
 
-| Job        | Does                                                                                                  |
-| ---------- | ----------------------------------------------------------------------------------------------------- |
+| Job        | Does                                                                                                                                         |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | partitions | creates the `stat_event` partitions of today and the next 2 days; drops those older than 7 whole UTC days before today. No default partition |
-| sessions   | deletes expired sessions, then users without any session (R-PRV-3)                                     |
+| sessions   | deletes expired sessions, then users without any session (R-PRV-3)                                                                           |
 
 ## Connections
 
