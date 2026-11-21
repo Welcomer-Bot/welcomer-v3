@@ -8,10 +8,12 @@ const TABS = [
   { id: "configurations", label: "Configurations" },
   { id: "images", label: "Images" },
   { id: "statistics", label: "Statistics" },
-];
+] as const;
+
+export type Tab = (typeof TABS)[number]["id"];
 
 export function ServerTabs({ serverId }: { serverId: string }) {
-  const selected = usePathname().split("/").at(-1);
+  const selected = usePathname().split("/")[3];
 
   return (
     <Tabs selectedKey={selected}>

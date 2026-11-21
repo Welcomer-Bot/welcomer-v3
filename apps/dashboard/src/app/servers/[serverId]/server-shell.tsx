@@ -2,9 +2,7 @@ import { Link } from "@heroui/react";
 import { Suspense, type ReactNode } from "react";
 import { ServerAvatar } from "../../server-avatar";
 import { requireServerPage } from "./access";
-import { ServerTabs } from "./server-tabs";
-
-type Tab = "configurations" | "images" | "statistics";
+import { ServerTabs, type Tab } from "./server-tabs";
 
 interface ShellProps {
   params: Promise<{ serverId: string }>;
@@ -13,7 +11,13 @@ interface ShellProps {
 
 // In each page, not in a layout: layouts do not re-render on navigation and do not know the
 // page's path, which the sign-in needs to come back to (Next.js, authentication guide).
-async function ServerHeader({ params, tab }: ShellProps) {
+// The page content renders here too, after the check: outside the boundary it would prerender
+// into the static shell (authentication-with-cache-components guide).
+async function ServerContent({
+  params,
+  tab,
+  children,
+}: ShellProps & { children?: ReactNode }) {
   const { serverId } = await params;
   const server = await requireServerPage(
     serverId,
@@ -28,6 +32,7 @@ async function ServerHeader({ params, tab }: ShellProps) {
         <h1>{server.name}</h1>
       </div>
       <ServerTabs serverId={server.id} />
+      {children}
     </>
   );
 }
@@ -41,10 +46,11 @@ export function ServerShell({
   return (
     <main>
       <Suspense fallback={<p>Loading…</p>}>
-        <ServerHeader params={params} tab={tab} />
+        <ServerContent params={params} tab={tab}>
+          <h2>{title}</h2>
+          {children}
+        </ServerContent>
       </Suspense>
-      <h2>{title}</h2>
-      {children}
     </main>
   );
 }
