@@ -16,11 +16,11 @@ const guild = (
 const GUILDS_BY_TOKEN: Record<string, unknown[]> = {
   "Bearer manager": [
     guild("81384788765712384", "Welcomer test server", "0", true),
-    guild("222078108977594368", "Beta absent", "32"),
-    guild("222078108985982976", "Alpha absent", "8"),
-    guild("222078108994371584", "Not managed", "2048"),
+    guild("41771983423143937", "Beta absent", "32"),
+    guild("41771983423143938", "Alpha absent", "8"),
+    guild("41771983423143939", "Not managed", "2048"),
   ],
-  "Bearer none": [guild("222078108981788672", "Member only", "0")],
+  "Bearer none": [guild("41771983423143940", "Member only", "0")],
 };
 
 createServer((request, response) => {

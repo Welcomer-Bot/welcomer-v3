@@ -69,7 +69,7 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: "node e2e/discord-mock.ts",
+      command: "node e2e/discord-mock.mts",
       port: 3001,
       reuseExistingServer: !process.env.CI,
     },
