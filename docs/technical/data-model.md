@@ -71,7 +71,7 @@ One row per (server, type) makes "at most one active" a primary key rule. Activa
 | messages, embeds, images | smallint                            | set for `send` — R-STA-5 to R-STA-7                                                                                                                                                                                     |
 | occurred_at              | timestamptz                         | partition key                                                                                                                                                                                                           |
 
-Partitioned by range on `occurred_at`, one partition per UTC day. A daily job creates the partitions of the next days and drops partitions older than 7 days (R-STA-3), see [scheduled jobs](#scheduled-jobs); dropping a partition is the bulk delete PostgreSQL recommends ([PostgreSQL, partitioning](https://www.postgresql.org/docs/current/ddl-partitioning.html)). Prisma cannot declare partitions: the partitioning SQL lives in a hand-edited migration ([ADR-0008](../adr/0008-statistics-events-and-daily-totals.md)).
+Partitioned by range on `occurred_at`, one partition per UTC day. A job creates the partitions of the next days and drops partitions older than 7 days (R-STA-3), see [scheduled jobs](#scheduled-jobs); dropping a partition is the bulk delete PostgreSQL recommends ([PostgreSQL, partitioning](https://www.postgresql.org/docs/current/ddl-partitioning.html)). Prisma cannot declare partitions: the partitioning SQL lives in a hand-edited migration ([ADR-0008](../adr/0008-statistics-events-and-daily-totals.md)).
 
 ### daily_server_total
 
@@ -126,7 +126,7 @@ Added by hand in a migration created with `prisma migrate dev --create-only` ([P
 
 ## Scheduled jobs
 
-Run by the bot process: once at start, then every day at 00:05 UTC. A failure is logged at level error.
+Run by the bot process: once at start, then every hour. The scheduler exists from slice 2 with the `sessions` job only; slice 5's `partitions` job, which is idempotent, shares it (slice 2, D14). A failure is logged at level error.
 
 | Job        | Does                                                                                                                                         |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
