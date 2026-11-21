@@ -354,7 +354,7 @@ None blocking. Two decisions change technical documents, each with its source, a
 - D4 rests on Better Auth source, not on a documented guarantee: if the header's `useSession` call does not run (JavaScript off), the session cookie is not extended. Live check step 7.
 - D8: whether `use cache` keeps a thrown error's class and leaves it uncached, and whether `getAccessToken` reads no request API under it.
 - D16: Discord tokens are stored unencrypted in the database, the Better Auth default; `account.encryptOAuthTokens: true` is the documented option if the owner wants it.
-- The session job deletes expired sessions, then users without a session, in two statements. A user returning between them can lose the user row during sign-in; the window is milliseconds, the guard is `user.createdAt`, and a sign-in retry works (accepted, review finding 7).
+- The session job deletes expired sessions, then users without a session, in two statements. The one-minute `user.createdAt` guard (D14) protects only a sign-in that creates a new user; a returning user whose last session just ended can lose the user row if they sign in between the two deletes. The window is milliseconds, and a retry of the sign-in works (accepted, review finding 7).
 - D10: a Discord outage during a token refresh sends the user to sign-in.
 - The client router may reuse a server page for up to 30 seconds (`stale` minimum), on top of the 60-second server cache. Every Server Action re-checks rights on the server from slice 3.
 
