@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import type { BrowserContext } from "@playwright/test";
 import { prisma } from "@repo/database";
 import { betterAuth } from "better-auth";
@@ -25,7 +26,7 @@ export const signInAs = async (
       id: crypto.randomUUID(),
       userId: user.id,
       providerId: "discord",
-      accountId: String(Date.now()) + String(Math.floor(Math.random() * 1e6)),
+      accountId: String(Date.now()) + String(randomInt(1e6)),
       accessToken: token,
       accessTokenExpiresAt: IN_ONE_YEAR(),
     },
