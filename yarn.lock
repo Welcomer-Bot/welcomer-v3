@@ -3830,6 +3830,7 @@ __metadata:
   dependencies:
     "@heroui/react": "npm:^3.2.7"
     "@heroui/styles": "npm:^3.2.7"
+    "@next/env": "npm:16.4.6"
     "@playwright/test": "npm:^1.65.1"
     "@repo/database": "workspace:*"
     "@repo/domain": "workspace:*"
