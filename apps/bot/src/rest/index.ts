@@ -2,7 +2,7 @@ import type { RequestMethods } from "@discordeno/bot";
 import { buildFastifyApp, parseMultiformBody } from "./fastify.ts";
 import restManager, { logger } from "./restManager.ts";
 
-const app = buildFastifyApp();
+const app = await buildFastifyApp();
 
 app.get("/timecheck", async (_req, res) => {
   res.status(200).send({ message: Date.now() });

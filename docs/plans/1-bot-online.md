@@ -633,6 +633,7 @@ Review fixes on the pull request:
 - `server.bot_joined_at` now holds Discord's `joined_at` from `GUILD_CREATE` (R-ADM-3, "date the bot joined"). The new `recorded_at` column holds when the bot first stored the row, and D6's guard uses it. The review said the docs already asked for `joined_at`; they did not, so contracts.md and data-model.md now say it. The slice's migration was regenerated, since it is not on `main` yet.
 - Local end-to-end tests run on `welcomer_test` freshly seeded (development.md).
 - Template comments that repeat the code are removed.
+- CodeQL raised a high alert, `js/missing-rate-limiting`, on the REST proxy's authorization hook. Fix: `@fastify/rate-limit` 11.2.2, Fastify's official plugin, which CodeQL recognises (`FastifyRateLimiter` in `MissingRateLimiting.qll`). It keeps the plugin's defaults, with an `allowList` that exempts requests carrying the secret, so only unauthenticated requests are limited and the bot's own traffic is never throttled. The plugin's hook is route-level, and "route-level hooks are always executed as the last hook in their category" (Fastify, Hooks). So the secret check moved from `onRequest` to `preParsing`: after the limiter, before the body is parsed. It is awaited before routes are added, as the plugin README does. Checked locally: 1,000 requests with a wrong secret get 401, the next gets 429, and the right secret still gets 200.
 
 Still open: Task 12 (owner live check), and the `yarn dev` start order between rest and gateway.
 

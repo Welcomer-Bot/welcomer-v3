@@ -2,6 +2,7 @@ import fastifyMultipart, {
   type MultipartFile,
   type MultipartValue,
 } from "@fastify/multipart";
+import fastifyRateLimit from "@fastify/rate-limit";
 import fastify, { type FastifyInstance } from "fastify";
 import { timingSafeEqual } from "node:crypto";
 import { env } from "./restManager.ts";
@@ -15,14 +16,19 @@ const isAuthorized = (header: string | undefined) => {
   return given.length === secret.length && timingSafeEqual(given, secret);
 };
 
-export function buildFastifyApp(): FastifyInstance {
+export async function buildFastifyApp(): Promise<FastifyInstance> {
   const app = fastify();
 
   app.register(fastifyMultipart, { attachFieldsToBody: true });
+  // Only requests without the secret are limited, so the bot's own traffic is never throttled.
+  await app.register(fastifyRateLimit, {
+    allowList: (req) => isAuthorized(req.headers.authorization),
+  });
 
-  app.addHook("onRequest", async (req, res) => {
+  // preParsing, not onRequest: the limiter's route-level onRequest hook must run first, and the body is not parsed yet.
+  app.addHook("preParsing", async (req, res) => {
     if (!isAuthorized(req.headers.authorization)) {
-      return res.status(401).send({
+      await res.status(401).send({
         message: "Credentials not valid.",
       });
     }

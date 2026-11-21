@@ -15,6 +15,7 @@
   "dependencies": {
     "@discordeno/bot": "22.0.0-beta.2",
     "@fastify/multipart": "10.1.9",
+    "@fastify/rate-limit": "11.2.2",
     "@repo/database": "workspace:*",
     "@repo/domain": "workspace:*",
     "amqplib": "2.4.0",

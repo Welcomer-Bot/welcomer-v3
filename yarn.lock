@@ -676,6 +676,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fastify/rate-limit@npm:11.2.2":
+  version: 11.2.2
+  resolution: "@fastify/rate-limit@npm:11.2.2"
+  dependencies:
+    "@lukeed/ms": "npm:^2.0.2"
+    fastify-plugin: "npm:^6.0.0"
+    ip-address: "npm:^10.2.0"
+    toad-cache: "npm:^3.7.0"
+  checksum: 10c0/13bfd0c5f159b00b53e0c4c3c11f85d29007f8febfa1177244ebe2d7b63f4cc23d17208cd27b2dec82bd1d9ba8ab80cfc832ae71cd761c5e74056c317900f197
+  languageName: node
+  linkType: hard
+
 "@heroui/react@npm:^3.2.7":
   version: 3.2.7
   resolution: "@heroui/react@npm:3.2.7"
@@ -1082,6 +1094,13 @@ __metadata:
     "@jridgewell/resolve-uri": "npm:^3.1.0"
     "@jridgewell/sourcemap-codec": "npm:^1.4.14"
   checksum: 10c0/4b30ec8cd56c5fd9a661f088230af01e0c1a3888d11ffb6b47639700f71225be21d1f7e168048d6d4f9449207b978a235c07c8f15c07705685d16dc06280e9d9
+  languageName: node
+  linkType: hard
+
+"@lukeed/ms@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "@lukeed/ms@npm:2.0.2"
+  checksum: 10c0/843b922717313bcde4943f478145d8bc13115b9b91d83bbaed53739b5644122984412310aed574792f4e6b492f2cbda178175f601856d310f67e14834c3f17a0
   languageName: node
   linkType: hard
 
@@ -3390,6 +3409,7 @@ __metadata:
   dependencies:
     "@discordeno/bot": "npm:22.0.0-beta.2"
     "@fastify/multipart": "npm:10.1.9"
+    "@fastify/rate-limit": "npm:11.2.2"
     "@repo/database": "workspace:*"
     "@repo/domain": "workspace:*"
     "@repo/eslint-config": "workspace:*"
@@ -5235,6 +5255,13 @@ __metadata:
   version: 2.0.3
   resolution: "internmap@npm:2.0.3"
   checksum: 10c0/8cedd57f07bbc22501516fbfc70447f0c6812871d471096fad9ea603516eacc2137b633633daf432c029712df0baefd793686388ddf5737e3ea15074b877f7ed
+  languageName: node
+  linkType: hard
+
+"ip-address@npm:^10.2.0":
+  version: 10.7.6
+  resolution: "ip-address@npm:10.7.6"
+  checksum: 10c0/b1877874793345a00ef46877e18b8ff38d91ce4d07195f8e26d1381a0248b296cfad73e2ec1ba7c5c39e347d365971e036fbb6ffbc672b7d3f0d9648ed2fafa5
   languageName: node
   linkType: hard
 
