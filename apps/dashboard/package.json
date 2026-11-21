@@ -14,15 +14,21 @@
   "dependencies": {
     "@heroui/react": "^3.2.7",
     "@heroui/styles": "^3.2.7",
+    "@internationalized/date": "^3.12.4",
+    "@react-aria/ssr": "^3.10.1",
+    "@react-aria/utils": "^3.34.1",
     "@repo/database": "workspace:*",
     "@repo/domain": "workspace:*",
     "better-auth": "1.7.26",
     "next": "16.4.6",
     "react": "19.3.0",
+    "react-aria": "^3.53.1",
+    "react-aria-components": "^1.22.1",
     "react-dom": "19.3.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@next/env": "16.4.6",
     "@playwright/test": "^1.65.1",
     "@repo/eslint-config": "workspace:*",
     "@tailwindcss/turbopack": "4.3.5",

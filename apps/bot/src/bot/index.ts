@@ -6,6 +6,9 @@ import { registerGuildEvents } from "./events/guilds.ts";
 import { registerInteractionEvents } from "./events/interactions/create.ts";
 import { registerMemberEvents } from "./events/members.ts";
 import "./events/nodejs.ts";
+import { runHourly } from "./jobs/schedule.ts";
+import { prismaSessionRepository } from "./jobs/session-repository.ts";
+import { createSessionJob } from "./jobs/session-service.ts";
 import { prismaServerRepository } from "./servers/server-repository.ts";
 import { createServerService } from "./servers/server-service.ts";
 import { createCommands } from "./commands.ts";
@@ -24,6 +27,11 @@ registerInteractionEvents(
       memoryBytes: () => process.memoryUsage().rss,
     }),
   }),
+);
+
+runHourly(
+  createSessionJob(prismaSessionRepository, () => new Date()),
+  logger,
 );
 
 await connectToRabbitMQ();

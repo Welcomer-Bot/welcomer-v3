@@ -139,8 +139,9 @@ Routes of the App Router, with dynamic segments in brackets ([Next.js, dynamic r
 | Route                                                  | Screen                                                                                    |
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
 | `/`                                                    | landing page                                                                              |
+| `/sign-in`                                             | sign-in page, then Discord (R-ACC-12)                                                     |
 | `/dashboard`                                           | dashboard home (server list)                                                              |
-| `/servers/[serverId]`                                  | redirects to its configurations                                                           |
+| `/servers/[serverId]`                                  | redirects to its configurations, in `next.config.ts`                                      |
 | `/servers/[serverId]/configurations`                   | configurations library                                                                    |
 | `/servers/[serverId]/images`                           | image library                                                                             |
 | `/servers/[serverId]/configurations/new`               | new configuration                                                                         |

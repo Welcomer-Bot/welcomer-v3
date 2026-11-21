@@ -1,12 +1,8 @@
+import { loadEnvConfig } from "@next/env";
 import { defineConfig, devices } from "@playwright/test";
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+// Next.js: "use the @next/env package" to load .env outside the Next.js runtime; set variables win.
+loadEnvConfig(process.cwd());
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -71,11 +67,19 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    // Next.js: the standalone server.js replaces `next start`, with `.next/static` copied in by hand.
-    command:
-      "cp -r .next/static .next/standalone/apps/dashboard/.next/ && node .next/standalone/apps/dashboard/server.js",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: "node e2e/discord-mock.mts",
+      port: 3001,
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      // Next.js: the standalone server.js replaces `next start`, with `.next/static` copied in by hand.
+      command:
+        "cp -r .next/static .next/standalone/apps/dashboard/.next/ && node .next/standalone/apps/dashboard/server.js",
+      url: "http://localhost:3000",
+      reuseExistingServer: !process.env.CI,
+      env: { DISCORD_API_URL: "http://localhost:3001" },
+    },
+  ],
 });

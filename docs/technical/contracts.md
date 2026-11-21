@@ -11,6 +11,7 @@ What each part of Welcomer exchanges with the others and with Discord. A change 
 | stat_event, daily_server_total, daily_send_total | bot                     | dashboard                                |
 | shard_status, bot_status                         | gateway                 | dashboard (status page), bot (`/status`) |
 | user, session, account, verification             | dashboard (Better Auth) | dashboard                                |
+| user, session, account (deletes only)            | bot (`sessions` job)    | bot                                      |
 
 The bot never writes configurations; the dashboard never writes statistics (R-STA-1). The shapes of `configuration.message` and `image.texts` are defined once, as schemas in `packages/domain`, and checked on every write and read.
 
@@ -68,8 +69,8 @@ No cache of backgrounds: each image downloads its background again. shortcut: no
 
 ## Dashboard to Discord: user calls
 
-- OAuth2 with scopes `identify` and `guilds` ([Discord, OAuth2 scopes](https://docs.discord.com/developers/topics/oauth2#shared-resources-oauth2-scopes)) **[verify at build]**.
-- `GET /users/@me/guilds` with the user's token gives each guild's `owner` and `permissions`; the dashboard computes manager rights from them (R-ACC-5, R-ACC-6) and caches the result 60 seconds per user in the dashboard's memory (single instance) (R-ACC-7). The call returns at most 200 servers; when it returns 200, the dashboard asks again with `after` set to the last identifier ([Discord, Get Current User Guilds](https://docs.discord.com/developers/resources/user#get-current-user-guilds)).
+- OAuth2 with scopes `identify` and `guilds` ([Discord, OAuth2 scopes](https://docs.discord.com/developers/topics/oauth2#shared-resources-oauth2-scopes)). The provider's default scopes are `identify` and `email`, and `scope` adds to them, so the defaults are switched off with `disableDefaultScope` (`@better-auth/core`, `social-providers/discord.mjs`); the end-to-end sign-in test reads `scope=identify guilds` in the authorization request (slice 2, D1).
+- `GET /users/@me/guilds` with the user's token gives each guild's `owner` and `permissions`; the dashboard computes manager rights from them (R-ACC-5, R-ACC-6) and caches the result 60 seconds per user in the dashboard's memory (single instance) (R-ACC-7), with `use cache` and `cacheLife` ([Next.js, `cacheLife`](https://nextjs.org/docs/app/api-reference/functions/cacheLife)). One call answers for every user: it "returns 200 guilds by default, which is the maximum number of guilds a non-bot user can join", so there is no `after` loop ([Discord, Get Current User Guilds](https://docs.discord.com/developers/resources/user#get-current-user-guilds)) (slice 2, D7, D8).
 
 ## Invitation link
 

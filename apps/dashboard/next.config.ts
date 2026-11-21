@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(import.meta.dirname, "../../"),
   cacheComponents: true,
   partialPrefetching: true,
+  redirects() {
+    return Promise.resolve([
+      {
+        source: "/servers/:serverId",
+        destination: "/servers/:serverId/configurations",
+        permanent: false,
+      },
+    ]);
+  },
   turbopack: {
     rules: {
       "*.css": {

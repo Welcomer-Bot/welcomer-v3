@@ -30,6 +30,7 @@ Chosen option: "Better Auth, Discord provider, scopes identify and guilds, place
 - [Better Auth, session management](https://www.better-auth.com/docs/concepts/session-management): "The session expires after 7 days by default."
 - [Better Auth, OAuth](https://www.better-auth.com/docs/concepts/oauth): "Better Auth currently requires an email address on every user record"; placeholder via `mapProfileToUser`.
 - [OWASP, session management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html).
-- Default Discord scopes of the provider not verified: check at build.
+- The provider's default scopes are `identify` and `email`, and `scope` adds to them (`@better-auth/core`, `social-providers/discord.mjs`); `disableDefaultScope` replaces them with `identify` and `guilds` (slice 2, D1).
+- Sessions are refreshed by the browser only: server components cannot set cookies, so they read the session without refreshing it, and the header's client call refreshes the database and the cookie together ([Better Auth, Next.js integration](https://www.better-auth.com/docs/integrations/next)) (slice 2, D4).
 - The Better Auth CLI is the `auth` package: `@better-auth/cli` is deprecated on npm ("Package no longer supported"), and the docs use `npx auth@latest generate` ([Better Auth, CLI](https://www.better-auth.com/docs/concepts/cli)). Slice 0 ran `auth generate` to write the user, session, account and verification models into the Prisma schema.
 - `next build` needs no secret: with no environment the build succeeds; Better Auth only logs that the default secret is in use while Next.js collects page data. Its source says the secret "should be at least 32 characters long" (a warning), which the dashboard's environment check enforces.
