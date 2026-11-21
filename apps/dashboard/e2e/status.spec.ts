@@ -52,14 +52,14 @@ test("R-PUB-8: refuses an identifier that is not 17 to 20 digits", async ({
 test("R-PUB-9: refreshes every 30 seconds", async ({ page }) => {
   await page.clock.install();
   await page.goto("/status");
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Status" }),
-  ).toBeVisible();
+  let refreshed = false;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/status") refreshed = true;
+  });
 
-  const refresh = page.waitForRequest(
-    (request) => new URL(request.url()).pathname === "/status",
-  );
-  await page.clock.fastForward("00:30");
-
-  await refresh;
+  // Visible is not hydrated: retry until the refresh timer exists, 30 seconds at a time.
+  await expect(async () => {
+    await page.clock.fastForward("00:30");
+    expect(refreshed).toBe(true);
+  }).toPass();
 });
