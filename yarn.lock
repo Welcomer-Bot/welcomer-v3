@@ -1722,6 +1722,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-aria/ssr@npm:^3.10.1":
+  version: 3.10.1
+  resolution: "@react-aria/ssr@npm:3.10.1"
+  dependencies:
+    "@swc/helpers": "npm:^0.5.0"
+    react-aria: "npm:^3.48.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+    react-dom: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+  checksum: 10c0/dc10dd696f2f34692b3e35ba19777d3a53f6298b0d63aa6cf5e457e88f8471d0f124a56e56c9dac4d95583f2ec729e29048cdb255f97d4ff2881b6bf933316ea
+  languageName: node
+  linkType: hard
+
+"@react-aria/utils@npm:^3.34.1":
+  version: 3.34.1
+  resolution: "@react-aria/utils@npm:3.34.1"
+  dependencies:
+    "@swc/helpers": "npm:^0.5.0"
+    react-aria: "npm:^3.48.0"
+    react-stately: "npm:^3.46.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+    react-dom: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+  checksum: 10c0/68cfe3b2b95379891887ad0d8e9ae21c2679919588badafa25cee725e46ed09f9423ff535f1b0c77cd8ea5ad155efab9c48d5639b9e28b3868d3f0e50a2215ae
+  languageName: node
+  linkType: hard
+
 "@react-spectrum/color@npm:^3.2.0":
   version: 3.2.1
   resolution: "@react-spectrum/color@npm:3.2.1"
@@ -3830,8 +3857,11 @@ __metadata:
   dependencies:
     "@heroui/react": "npm:^3.2.7"
     "@heroui/styles": "npm:^3.2.7"
+    "@internationalized/date": "npm:^3.12.4"
     "@next/env": "npm:16.4.6"
     "@playwright/test": "npm:^1.65.1"
+    "@react-aria/ssr": "npm:^3.10.1"
+    "@react-aria/utils": "npm:^3.34.1"
     "@repo/database": "workspace:*"
     "@repo/domain": "workspace:*"
     "@repo/eslint-config": "workspace:*"
@@ -3849,6 +3879,8 @@ __metadata:
     jsdom: "npm:^31.0.1"
     next: "npm:16.4.6"
     react: "npm:19.3.0"
+    react-aria: "npm:^3.53.1"
+    react-aria-components: "npm:^1.22.1"
     react-dom: "npm:19.3.0"
     tailwindcss: "npm:4.3.5"
     typescript: "npm:^5"
@@ -6806,7 +6838,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria-components@npm:1.22.1":
+"react-aria-components@npm:1.22.1, react-aria-components@npm:^1.22.1":
   version: 1.22.1
   resolution: "react-aria-components@npm:1.22.1"
   dependencies:
@@ -6825,7 +6857,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria@npm:3.53.1, react-aria@npm:^3.48.0":
+"react-aria@npm:3.53.1, react-aria@npm:^3.48.0, react-aria@npm:^3.53.1":
   version: 3.53.1
   resolution: "react-aria@npm:3.53.1"
   dependencies:
