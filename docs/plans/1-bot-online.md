@@ -69,7 +69,7 @@ All of these were published more than 24 hours ago, so Yarn's `npmMinimalAgeGate
 - **D6. Missed departures after `READY` (R-SRV-5) delete only servers joined before that `READY` was handled.** The bot handles up to 100 messages at once (prefetch 100), so a new server's `GUILD_CREATE` can be stored before the `READY` that precedes it is finished. Without a guard, that new server would be deleted. The service reads the clock synchronously when it gets `READY`. The repository then deletes the rows that meet all three conditions:
   - they belong to that shard by the formula;
   - they are absent from the list;
-  - their `bot_joined_at` is earlier than that time.
+  - their `recorded_at` (the time the bot stored them) is earlier than that time.
 
   The path from the consumer callback to the service is synchronous, so a later `GUILD_CREATE` always reads a later clock:
 
@@ -402,7 +402,7 @@ Files: `apps/bot/src/bot/servers/*`, `apps/bot/src/bot/events/{guilds,members}.t
    - `shardReady(shard, ids)` reads `clock()` before any `await`, then calls `removeMissing`. A one-line comment says why: the dispatch path from the consumer is synchronous (D6).
 
 5. Write `prismaServerRepository` (`server-repository.ts`):
-   - `upsert` uses `prisma.server.upsert`; its `update` part leaves `botJoinedAt` out (R-SRV-3).
+   - `upsert` uses `prisma.server.upsert`; its `update` part refreshes `botJoinedAt` from Discord's `joined_at` and leaves `recordedAt` out (R-SRV-3).
    - `update` and `addMembers` use `updateMany` with `{ increment: delta }`, so a server not yet stored changes nothing, and nothing throws.
    - `remove` uses `deleteMany`.
    - `removeMissing` uses `$executeRaw` with D6's SQL and `NOT ("id" = ANY(${presentIds}))` **[verify at build: Prisma binds a string array as `text[]`]**.
@@ -627,7 +627,7 @@ Review fixes on the pull request:
 - Accepted: the bot and the dashboard each map `shard_status` rows in their own repository, one adapter per app, since the apps share no infrastructure code.
 - Accepted: the gateway writes status through its repository without a service; recorded in development.md, Architecture rules.
 - `/status` before the gateway ever ran: the repository returns `null`, and the reply says "Discord connection: not connected yet". Outside a server, the command replies "Use /status in a server." instead of throwing.
-- REST proxy: the hook returns the reply it sends (Fastify Hooks: "return reply"), and the secret is compared with `crypto.timingSafeEqual` after a length check, since it throws on different lengths.
+- REST proxy: the `preParsing` hook sends the 401 before it returns (Fastify Hooks: "`reply.send()` must be called before the function returns"), and the secret is compared with `crypto.timingSafeEqual` after a length check, since it throws on different lengths.
 - Accepted: the REST proxy answers 500 on any Discord error, as the template does; the template documents no status passthrough.
 - `READY` without the shard pair skips the missed-departure cleanup, since no server can be matched to the connection.
 - `server.bot_joined_at` now holds Discord's `joined_at` from `GUILD_CREATE` (R-ADM-3, "date the bot joined"). The new `recorded_at` column holds when the bot first stored the row, and D6's guard uses it. The review said the docs already asked for `joined_at`; they did not, so contracts.md and data-model.md now say it. The slice's migration was regenerated, since it is not on `main` yet.

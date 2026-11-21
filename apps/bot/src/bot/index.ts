@@ -1,7 +1,7 @@
 import type { DiscordGatewayPayload } from "@discordeno/bot";
 import { connect as connectAmqp, type ConsumeMessage } from "amqplib";
 import { bot, env, logger } from "./bot.ts";
-import { dispatchAndWait } from "./dispatch.ts";
+import { dispatchAndWait, track } from "./dispatch.ts";
 import { registerGuildEvents } from "./events/guilds.ts";
 import { registerInteractionEvents } from "./events/interactions/create.ts";
 import { registerMemberEvents } from "./events/members.ts";
@@ -38,7 +38,12 @@ async function handleGatewayEvent(
 
   const results = await dispatchAndWait(() => {
     bot.events.raw?.(payload, shardId);
-    bot.handlers[event](bot, payload, shardId);
+    // The executor runs synchronously, so a throwing handler becomes a tracked rejection.
+    void track(
+      new Promise((resolve) => {
+        resolve(bot.handlers[event](bot, payload, shardId));
+      }),
+    );
   });
 
   for (const result of results) {
@@ -120,9 +125,20 @@ async function connectToRabbitMQ(): Promise<void> {
 
     await channel.assertQueue(QUEUE, { durable: true });
     await channel.prefetch(100);
-    await channel.consume(QUEUE, (message) => void handleMessage(message), {
-      noAck: false,
-    });
+    await channel.consume(
+      QUEUE,
+      (message) => {
+        handleMessage(message).catch((error: unknown) => {
+          logger.warn(
+            { err: error },
+            "Could not acknowledge a RabbitMQ message; it will be redelivered",
+          );
+        });
+      },
+      {
+        noAck: false,
+      },
+    );
   } catch (error) {
     logger.error({ err: error }, "Failed to set up the RabbitMQ channel");
     await closeConnection();
