@@ -74,3 +74,40 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+enum ShardState {
+  online
+  connecting
+  offline
+
+  @@map("shard_state")
+}
+
+model Server {
+  id          String   @id
+  name        String
+  memberCount Int      @map("member_count")
+  icon        String?
+  botJoinedAt DateTime @map("bot_joined_at") @db.Timestamptz
+  recordedAt  DateTime @map("recorded_at") @db.Timestamptz
+
+  @@map("server")
+}
+
+model ShardStatus {
+  shardId     Int        @id @map("shard_id")
+  state       ShardState
+  latencyMs   Int?       @map("latency_ms")
+  serverCount Int        @map("server_count")
+  updatedAt   DateTime   @map("updated_at") @db.Timestamptz
+
+  @@map("shard_status")
+}
+
+model BotStatus {
+  id         Int      @id @default(1)
+  startedAt  DateTime @map("started_at") @db.Timestamptz
+  shardCount Int      @map("shard_count")
+
+  @@map("bot_status")
+}

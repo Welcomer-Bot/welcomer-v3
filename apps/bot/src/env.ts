@@ -8,6 +8,8 @@ export const gatewayEnv = z.object({
   DATABASE_URL: z.url(),
   RABBITMQ_URL: z.url(),
   DISCORD_TOKEN: z.string().min(1),
+  REST_PROXY_URL: z.url(),
+  REST_PROXY_SECRET: z.string().min(1),
   LOG_LEVEL,
 });
 
@@ -23,7 +25,9 @@ export const botEnv = z.object({
   RABBITMQ_URL: z.url(),
   REST_PROXY_URL: z.url(),
   REST_PROXY_SECRET: z.string().min(1),
+  DISCORD_TOKEN: z.string().min(1),
   SUPPORT_SERVER_URL: z.url(),
+  DASHBOARD_URL: z.url(),
   LOG_LEVEL,
 });
 

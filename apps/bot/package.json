@@ -4,15 +4,23 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev:gateway": "node --watch --env-file-if-exists=.env src/gateway.ts",
-    "dev:rest": "node --watch --env-file-if-exists=.env src/rest.ts",
-    "dev:bot": "node --watch --env-file-if-exists=.env src/bot.ts",
-    "register-commands": "node --env-file-if-exists=.env src/register-commands.ts",
+    "dev:gateway": "node --watch --env-file-if-exists=.env src/gateway/index.ts",
+    "dev:rest": "node --watch --env-file-if-exists=.env src/rest/index.ts",
+    "dev:bot": "node --watch --env-file-if-exists=.env src/bot/index.ts",
+    "register-commands": "node --env-file-if-exists=.env src/bot/register-commands.ts",
     "lint": "eslint --max-warnings 0",
     "typecheck": "tsc",
     "test": "vitest run"
   },
   "dependencies": {
+    "@discordeno/bot": "22.0.0-beta.2",
+    "@fastify/multipart": "10.1.9",
+    "@fastify/rate-limit": "11.2.2",
+    "@repo/database": "workspace:*",
+    "@repo/domain": "workspace:*",
+    "amqplib": "2.4.0",
+    "fastify": "5.12.8",
+    "pino": "10.4.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {

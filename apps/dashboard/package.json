@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint --max-warnings 0",
+    "lint": "next typegen && eslint --max-warnings 0",
     "typecheck": "next typegen && tsc --noEmit",
     "e2e": "playwright test",
     "test": "vitest run"
@@ -15,6 +15,7 @@
     "@heroui/react": "^3.2.7",
     "@heroui/styles": "^3.2.7",
     "@repo/database": "workspace:*",
+    "@repo/domain": "workspace:*",
     "better-auth": "1.7.26",
     "next": "16.4.6",
     "react": "19.3.0",

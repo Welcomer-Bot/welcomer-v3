@@ -15,14 +15,16 @@ Quality gate on every change, then the Docker images of each app on `main`. Runs
 
 `ci.yml`, on `pull_request` and on `push` to `main`. No workflow-level `paths` filter: a workflow skipped by path filtering leaves its required checks pending ([GitHub, workflow syntax, paths](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#onpushpull_requestpull_request_targetpathspaths-ignore)). Each job runs only on changed workspaces with `turbo run <task> --affected`, which needs the full history: `actions/checkout` with `fetch-depth: 0` ([Turborepo, constructing CI](https://turborepo.dev/docs/crafting-your-repository/constructing-ci): "A clone with sufficient history is necessary for comparisons").
 
-| Job         | Runs                                                                   | Fails when           |
-| ----------- | ---------------------------------------------------------------------- | -------------------- |
-| `lint`      | ESLint                                                                 | any error            |
-| `format`    | Prettier check                                                         | any unformatted file |
-| `typecheck` | `tsc --noEmit` per workspace                                           | any type error       |
-| `test`      | Vitest unit and integration tests, with a PostgreSQL service container | any failing test     |
-| `e2e`       | Playwright against the built dashboard                                 | any failing journey  |
-| `build`     | production build of each affected app and image build without push     | build error          |
+| Job         | Runs                                                                        | Fails when           |
+| ----------- | --------------------------------------------------------------------------- | -------------------- |
+| `lint`      | ESLint                                                                      | any error            |
+| `format`    | Prettier check                                                              | any unformatted file |
+| `typecheck` | `tsc --noEmit` per workspace                                                | any type error       |
+| `test`      | Vitest unit and integration tests, with a PostgreSQL service container      | any failing test     |
+| `e2e`       | Playwright against the built dashboard, with a PostgreSQL service container | any failing journey  |
+| `build`     | production build of each affected app and image build without push          | build error          |
+
+The `test` job sets `DATABASE_URL` and runs `db:deploy` before the tests. The `e2e` job runs `db:deploy` and `db:seed`, so the status page shows the seed; the seeded connections are dated 2026-01-01, so they always show offline and no assertion depends on timing (slice 1, D14).
 
 Each job checks out the repository first, then calls a shared composite action for Node setup with the Yarn cache and `yarn install --immutable`. The action cannot do the checkout itself: "You must check out your repository before using the action" ([GitHub, workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)).
 
@@ -42,4 +44,4 @@ Also on every pull request:
 
 ## Versions
 
-Each tool is installed at its latest stable version when the repository is created, with its official initializer, then pinned by the lockfile. Exact versions are recorded in the scaffold plan, not here. Node.js and Yarn: [development](./development.md#tools). No Turborepo remote cache.
+Each tool is installed at its latest stable version when the repository is created, with its official initializer, then pinned by the lockfile. Exact versions are recorded in the scaffold plan, not here. Documented exception: discordeno is pinned to `22.0.0-beta.2`, the newest named v22 release, not the `latest` v21 ([slice 1, D1](../plans/1-bot-online.md#decisions-and-verify-at-build-items-resolved-now)). Node.js and Yarn: [development](./development.md#tools). No Turborepo remote cache.

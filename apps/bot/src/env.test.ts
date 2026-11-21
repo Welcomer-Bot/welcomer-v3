@@ -4,12 +4,14 @@ import { botEnv, gatewayEnv, registerCommandsEnv, restEnv } from "./env.ts";
 const processes = [
   {
     name: "gateway",
-    required: "DATABASE_URL",
+    required: "REST_PROXY_URL",
     schema: gatewayEnv,
     complete: {
       DATABASE_URL: "postgresql://u:p@localhost:5432/db",
       RABBITMQ_URL: "amqp://guest:guest@localhost:5672",
       DISCORD_TOKEN: "t",
+      REST_PROXY_URL: "http://localhost:8000",
+      REST_PROXY_SECRET: "s",
     },
   },
   {
@@ -31,7 +33,9 @@ const processes = [
       RABBITMQ_URL: "amqp://guest:guest@localhost:5672",
       REST_PROXY_URL: "http://localhost:8000",
       REST_PROXY_SECRET: "s",
+      DISCORD_TOKEN: "t",
       SUPPORT_SERVER_URL: "https://discord.gg/x",
+      DASHBOARD_URL: "http://localhost:3000/dashboard",
     },
   },
   {

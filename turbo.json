@@ -13,6 +13,7 @@
     "BETTER_AUTH_URL",
     "ADMIN_DISCORD_IDS",
     "SUPPORT_SERVER_URL",
+    "DASHBOARD_URL",
     "LOG_LEVEL",
     "DISCORD_API_URL",
     "NODE_ENV"
@@ -46,6 +47,6 @@
     "db:generate": { "cache": false },
     "db:migrate": { "cache": false },
     "db:deploy": { "cache": false },
-    "db:seed": { "cache": false }
+    "db:seed": { "cache": false, "dependsOn": ["db:generate"] }
   }
 }

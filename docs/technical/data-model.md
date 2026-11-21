@@ -12,7 +12,8 @@ Physical model of the [domain model](../business/domain-model.md). Database: Pos
 | name          | text           | kept up to date on guild update                                                      |
 | member_count  | integer        | R-SRV-4                                                                              |
 | icon          | text, nullable | Discord icon hash, kept up to date on guild create and update; shown on server pages |
-| bot_joined_at | timestamptz    | R-ADM-3                                                                              |
+| bot_joined_at | timestamptz    | R-ADM-3; Discord's `joined_at` from guild create                                     |
+| recorded_at   | timestamptz    | when the bot first stored the row; guards the missed-departure cleanup (contracts)   |
 
 Row created on guild create, deleted on guild delete when the guild is not merely unavailable (R-SRV-5). Deleting it cascades to `configuration`, `active_configuration`, `image`. Statistics have no foreign key to it (R-SRV-6).
 
@@ -97,15 +98,15 @@ Each event insert and the matching daily total upsert (`insert … on conflict d
 
 ### shard_status
 
-| Column       | Type                                   | Notes                                                                            |
-| ------------ | -------------------------------------- | -------------------------------------------------------------------------------- |
-| shard_id     | integer, PK                            |                                                                                  |
-| state        | enum `online`, `connecting`, `offline` |                                                                                  |
-| latency_ms   | integer, nullable                      |                                                                                  |
-| server_count | integer                                | counted by the gateway: guilds of `READY`, plus guild create, minus guild delete |
-| updated_at   | timestamptz                            | older than 1 minute shows offline — R-PUB-7                                      |
+| Column       | Type                                   | Notes                                                                                                                                                                              |
+| ------------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| shard_id     | integer, PK                            |                                                                                                                                                                                    |
+| state        | enum `online`, `connecting`, `offline` |                                                                                                                                                                                    |
+| latency_ms   | integer, nullable                      |                                                                                                                                                                                    |
+| server_count | integer                                | counted by the gateway as a set of server identifiers per connection: `READY` replaces it, guild create adds, guild delete removes unless the server is only unavailable (R-PUB-6) |
+| updated_at   | timestamptz                            | older than 1 minute shows offline — R-PUB-7                                                                                                                                        |
 
-At start the gateway deletes the rows with `shard_id` at or above the new shard count. Plus one row of `bot_status` (`started_at`, `shard_count`) for R-PUB-4 and the shard formula.
+At start the gateway deletes the rows with `shard_id` at or above the new shard count. Plus one row of `bot_status` (`id` integer primary key, always 1, since Prisma needs a unique field on each model; `started_at`, `shard_count`) for R-PUB-4 and the shard formula.
 
 ### Authentication tables
 

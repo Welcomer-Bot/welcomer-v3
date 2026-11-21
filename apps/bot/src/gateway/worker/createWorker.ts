@@ -1,0 +1,60 @@
+import { join as joinPath } from "node:path";
+import { Worker } from "node:worker_threads";
+import gatewayManager, { env, intents, logger } from "../gatewayManager.ts";
+import { prismaStatusRepository } from "../status-repository.ts";
+import type {
+  ManagerMessage,
+  WorkerCreateData,
+  WorkerMessage,
+} from "./types.ts";
+
+export function createWorker(workerId: number): Worker {
+  const workerFilePath = joinPath(import.meta.dirname, "./worker.ts");
+
+  const worker = new Worker(workerFilePath, {
+    workerData: {
+      connectionData: {
+        intents,
+        token: env.DISCORD_TOKEN,
+        totalShards: gatewayManager.totalShards,
+        url: gatewayManager.url,
+        version: gatewayManager.version,
+      },
+      workerId,
+      logLevel: env.LOG_LEVEL,
+      rabbitMQUrl: env.RABBITMQ_URL,
+    } satisfies WorkerCreateData,
+  });
+
+  worker.on(
+    "message",
+    (message: ManagerMessage) => void handleWorkerMessage(message),
+  );
+
+  async function handleWorkerMessage(message: ManagerMessage) {
+    if (message.type === "RequestIdentify") {
+      logger.info({ shardId: message.shardId }, "Requesting identify");
+      await gatewayManager.requestIdentify(message.shardId);
+
+      worker.postMessage({
+        type: "AllowIdentify",
+        shardId: message.shardId,
+      } satisfies WorkerMessage);
+
+      return;
+    }
+    if (message.type === "ShardIdentified") {
+      logger.info({ shardId: message.shardId }, "Shard identified");
+      return;
+    }
+    if (message.type === "ShardStatuses") {
+      await prismaStatusRepository
+        .save(message.statuses, new Date())
+        .catch((error: unknown) => {
+          logger.error({ err: error }, "Failed to save the shard statuses");
+        });
+    }
+  }
+
+  return worker;
+}
